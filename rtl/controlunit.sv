@@ -7,17 +7,10 @@ module controlunit #(
     output logic                    RegWrite_o,
     output logic [3:0]              ALUCtrl_o,      //determined using func3 and the 5th bits of op and funct7
     output logic                    ALUSrc_o,
-    //output logic [1:0]              ALUSrcA_o,
-    //output logic [1:0]              ALUSrcB_o,
     output logic [2:0]              ImmSrc_o,       //decides which instruction bits to use as the immediate
     output logic                    PCSrc_o,
     output logic                    MemWrite_o,    
     output logic [1:0]              ResultSrc_o
-    //output logic                    JumpD_o
-    //output logic                    BranchD
-    //output logic                    PCWrite_o,
-    //output logic                    AdrSrc_o,
-    //output logic                    IRWrite_o,
 );
 
     logic [6:0]     op;
