@@ -14,6 +14,8 @@ logic [2:0]     ImmSrc;
 logic           PCSrc;
 logic           MemWrite;
 logic [1:0]     ResultSrc;
+logic [1:0]     MemType;
+logic           MemSign;
 
 controlunit controlunit (
     .Instr_i(Instr),
@@ -101,12 +103,15 @@ logic [DATA_WIDTH-1:0] PCPlus4M;
 logic [DATA_WIDTH-1:0] ALUResultM;
 logic [DATA_WIDTH-1:0] RDM;
 
+
 memoryblock memory(
     .ALUResultM_i(ALUResult),
     .WriteDataM_i(WriteData),
     .PCPlus4M_i(PCPlus4E),
     .MemWrite_i(MemWrite),
     .clk(clk),
+    .MemSign_i(MemSign),
+    .MemType_i(MemType),
 
     .ALUResultM_o(ALUResultM),
     .RD_o(RDM),
