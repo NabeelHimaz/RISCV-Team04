@@ -10,7 +10,9 @@ module controlunit #(
     output logic [2:0]              ImmSrc_o,       //decides which instruction bits to use as the immediate
     output logic                    PCSrc_o,
     output logic                    MemWrite_o,    
-    output logic [1:0]              ResultSrc_o
+    output logic [1:0]              ResultSrc_o,
+    output logic [1:0]              MemType_o,
+    output logic                    MemSign_o,
 );
 
     logic [6:0]     op;
@@ -26,6 +28,24 @@ module controlunit #(
         case(op)
             7'd3: begin                                                     //I-type 
                 ALUCtrl_o = 4'b0000;
+
+                case(funct3)
+                    3'b000: 
+                        MemType_o = 2'b01;
+                        MemSign_o = 1'b0;
+                    3'b001:     
+                        MemType_o = 2'b10;
+                        MemSign_o = 1'b0;                 
+                    3'b010:            
+                        MemType_o = 2'b00;
+                        MemSign_o = 1'b0;       //doesnt matter?
+                    3'b100: 
+                        MemType_o = 2'b01;
+                        MemSign_o = 1'b1;            
+                    3'b101: 
+                        MemType_o = 2'b10;
+                        MemSign_o = 1'b1; 
+                endcase 
             end
 
             7'd19, 7'd51: begin                                             //Arithmetic I-type and R-type                                      
@@ -44,12 +64,21 @@ module controlunit #(
 
             7'd23, 7'd55: begin //U-type
                 ImmSrc_o    = 3'b011;
-                ALUCtrl_o   = 4'b0000;  //doesnt matter
-            end
+                ALUCtrl_o   = 4'b0000;  
+                            end
 
             7'd35: begin                //S-type
                 ImmSrc_o    = 3'b001;
                 ALUCtrl_o   = 4'b0000;
+                MemSign = 1'b0;
+                case(funct3)
+                    3'b000:
+                        MemType_o = 2'b01;
+                    3'b001:
+                        MemType_o = 2'b10;
+                    3'b010:
+                        MemType_o = 2'b00;
+                endcase 
             end
 
             7'd99: begin                //B-type
@@ -59,7 +88,7 @@ module controlunit #(
 
             7'd103: begin               //jalr
                 ImmSrc_o = 3'b000;
-                ALUCtrl_o = 4'b0000;    //need a new ALU instruction
+                ALUCtrl_o = 4'b0000;    
             end
             7'd111: begin               //jal
                 ImmSrc_o = 3'b100;
