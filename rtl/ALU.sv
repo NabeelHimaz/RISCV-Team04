@@ -6,7 +6,8 @@ module ALU #(
     input  logic [DATA_WIDTH-1:0]   srcB_i,
     input  logic [3:0]              ALUCtrl_i,
 
-    output logic [DATA_WIDTH-1:0]   ALUResult_o  
+    output logic [DATA_WIDTH-1:0]   ALUResult_o,
+    output logic Zero_o  
 );
 
     always_comb begin
@@ -43,6 +44,7 @@ module ALU #(
         
             default: ALUResult_o = 32'd0;
         endcase
+        Zero_o = (ALUResult_o == 0) ? 1'b1 : 1'b0; 
     end
 
 endmodule
