@@ -7,7 +7,8 @@ module pc_module #(
     input logic [DATA_WIDTH-1:0] PCTargetE_i, //this is the jump PC value coming after Execute
     //input  logic [DATA_WIDTH-1:0] ImmExt_i,
 
-    output logic [DATA_WIDTH-1:0] PC
+    output logic [DATA_WIDTH-1:0] PC,
+    output logic [DATA_WIDTH-1:0] PC_Plus4 //this ouptut goes all the way to WriteBack
 );
 
     //logic [DATA_WIDTH-1:0] branch_PC;
@@ -17,6 +18,7 @@ module pc_module #(
 
     assign inc_PC = PC + 32'd4;
     
+    assign PC_Plus4 = inc_PC;
     //assign branch_PC = PC + ImmExt_i;
 
     mux #(
@@ -37,6 +39,7 @@ module pc_module #(
         else
             PC <= next_PC;
     end
+    
     
 endmodule
 
