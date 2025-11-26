@@ -2,7 +2,7 @@ module controlunit #(
     parameter DATA_WIDTH = 32
 ) (
     input  logic [DATA_WIDTH-1:0]   Instr_i,
-    input  logic                    Zero_i,         //only needed for beq instructions
+    input  logic                    Zero_i,         //only needed for beq instructions NH & AT: where is this being driven from?
 
     output logic                    RegWrite_o,
     output logic [3:0]              ALUCtrl_o,      //determined using func3 and the 5th bits of op and funct7
@@ -10,7 +10,9 @@ module controlunit #(
     output logic [2:0]              ImmSrc_o,       //decides which instruction bits to use as the immediate
     output logic                    PCSrc_o,
     output logic                    MemWrite_o,    
-    output logic [1:0]              ResultSrc_o
+    output logic [1:0]              ResultSrc_o,
+    output logic [1:0]              MemType_o,
+    output logic                    MemSign_o
 );
 
     logic [6:0]     op;
@@ -26,12 +28,44 @@ module controlunit #(
         case(op)
             7'd3: begin                                                     //I-type 
                 ALUCtrl_o = 4'b0000;
-            end
 
-            7'd19, 7'd51: begin                                             //Arithmetic I-type and R-type                                      
+                //NH: syntax issues, need to wrap in begin and end. make sure to pull this to ur most recent version of controlunit.sv
 
                 case(funct3)
-                    3'b000: ALUCtrl_o = (funct7_5) ? 4'b0001 : 4'b0000;     //sub, add           
+                    3'b000: begin
+                        MemType_o = 2'b01;
+                        MemSign_o = 1'b0;
+                    end
+                    3'b001: begin
+                        MemType_o = 2'b10;
+                        MemSign_o = 1'b0;                 
+                    end
+                    3'b010: begin
+                        MemType_o = 2'b00;
+                        MemSign_o = 1'b0;       //doesnt matter?
+                    end
+                    3'b100: begin
+                        MemType_o = 2'b01;
+                        MemSign_o = 1'b1;            
+                    end
+                    3'b101: begin
+                        MemType_o = 2'b10;
+                        MemSign_o = 1'b1; 
+                    end
+                    //NH: cases not completely covered, either cover all or write a default.
+                    //i just wrote a random default case bc i cba to think
+                    default: begin             // <--- ADDED DEFAULT
+                        MemType_o = 2'b00;     // Default to 0 (safe state)
+                        MemSign_o = 1'b0;
+                    end
+                endcase 
+            end
+
+            //NH: this logic doesn't work 100%, check testbench file
+            7'd19, 7'd51: begin                                             //Arithmetic I-type and R-type                   
+
+                case(funct3)
+                    3'b000: ALUCtrl_o = (funct7_5) ? 4'b0001 : 4'b0000;     //sub, add
                     3'b001: ALUCtrl_o = 4'b1000;                            //logical shift left                      
                     3'b010: ALUCtrl_o = 4'b0101;                            //set less than signed                  
                     3'b011: ALUCtrl_o = 4'b0110;                            //set less than unsigned   
@@ -44,12 +78,24 @@ module controlunit #(
 
             7'd23, 7'd55: begin //U-type
                 ImmSrc_o    = 3'b011;
-                ALUCtrl_o   = 4'b0000;  //doesnt matter
-            end
+                ALUCtrl_o   = 4'b0000;  
+                            end
 
             7'd35: begin                //S-type
                 ImmSrc_o    = 3'b001;
                 ALUCtrl_o   = 4'b0000;
+                //NH: syntax fix on line below, make sure to pull through to latest ver of controlunit
+                MemSign_o = 1'b0;
+                case(funct3)
+                    3'b000:
+                        MemType_o = 2'b01;
+                    3'b001:
+                        MemType_o = 2'b10;
+                    3'b010:
+                        MemType_o = 2'b00;
+                    
+                    default: MemType_o = 2'b00; //NH: i just added a random default case, double check this is fine
+                endcase 
             end
 
             7'd99: begin                //B-type
@@ -59,7 +105,7 @@ module controlunit #(
 
             7'd103: begin               //jalr
                 ImmSrc_o = 3'b000;
-                ALUCtrl_o = 4'b0000;    //need a new ALU instruction
+                ALUCtrl_o = 4'b0000;    
             end
             7'd111: begin               //jal
                 ImmSrc_o = 3'b100;
@@ -73,7 +119,7 @@ module controlunit #(
         MemWrite_o      = (op == 7'd35) ? 1'b1 : 1'b0;
         RegWrite_o      = (op == 7'd35 || op == 7'd99) ? 1'b0 : 1'b1; 
         ALUSrc_o        = (op == 7'd51) ? 1'b0 : 1'b1;
-        PCSrc_o         = (op == 7'd103 || op == 7'd111 || op == 7'd99 && Zero_i) ? 1'b1 : 1'b0;
+        PCSrc_o         = (op == 7'd103 || op == 7'd111 || op == 7'd99 && Zero_i) ? 1'b1 : 1'b0; //NH & AT: this is relying on a zero flag that I don't think is being properly driven rn?
         
         if (op == 7'd3)                             //use data from memory
             ResultSrc_o = 2'b01;

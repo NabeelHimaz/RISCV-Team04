@@ -1,12 +1,4 @@
-/*
- *  Verifies the results of the alu, exits with a 0 on success.
- */
-
 #include "base_testbench.h"
-
-Vdut *top;
-VerilatedVcdC *tfp;
-unsigned int ticks = 0;
 
 class ALUTestbench : public BaseTestbench
 {
@@ -20,13 +12,25 @@ protected:
     }
 };
 
+//waiting on changes from NH & AT to test
+TEST_F(ALUTestbench, ZeroFlagSet)
+{
+    top->ALUCtrl_i = 0b0001;
+    top->srcA_i = 0b0011;
+    top->srcB_i = 0b0011;
+
+    tick();
+
+    //EXPECT_EQ(top->ALU zero flag out, 0b1);
+}
+
 TEST_F(ALUTestbench, ALU0WorksTest)
 {
     top->ALUCtrl_i = 0b0000;
     top->srcA_i = 0b0011;
     top->srcB_i = 0b1100;
 
-    top->eval();
+    tick();
 
     EXPECT_EQ(top->ALUResult_o, 0b1111);
 }
@@ -37,7 +41,7 @@ TEST_F(ALUTestbench, ALU1WorksTest)
     top->srcA_i = 0b0110;
     top->srcB_i = 0b1100;
 
-    top->eval();
+    tick();
 
     EXPECT_EQ(top->ALUResult_o, 0b0100);
 }
@@ -51,7 +55,7 @@ TEST_F(ALUTestbench, ADD_Basic)
     top->srcA_i = 0b0011; //3
     top->srcB_i = 0b1100; //12
 
-    top->eval();
+    tick();
 
     EXPECT_EQ(top->ALUResult_o, 15);
 }
@@ -64,7 +68,7 @@ TEST_F(ALUTestbench, ADD_Overflow)
     top->srcA_i = 0xFFFFFFFF; 
     top->srcB_i = 0x00000001; 
 
-    top->eval();
+    tick();
 
     EXPECT_EQ(top->ALUResult_o, 0x00000000);
 }
@@ -78,7 +82,7 @@ TEST_F(ALUTestbench, SUB_Basic)
     top->srcA_i = 12;
     top->srcB_i = 3;
 
-    top->eval();
+    tick();
 
     EXPECT_EQ(top->ALUResult_o, 9);
 }
@@ -91,7 +95,7 @@ TEST_F(ALUTestbench, SUB_NegativeResult)
     top->srcA_i = 0;
     top->srcB_i = 1;
 
-    top->eval();
+    tick();
 
     EXPECT_EQ(top->ALUResult_o, 0xFFFFFFFF);
 }
@@ -105,7 +109,7 @@ TEST_F(ALUTestbench, AND_Basic)
     top->srcA_i = 0x000000FF; 
     top->srcB_i = 0x00000F0F; 
 
-    top->eval();
+    tick();
 
     EXPECT_EQ(top->ALUResult_o, 0x0000000F);
 }
@@ -117,7 +121,7 @@ TEST_F(ALUTestbench, OR_Basic)
     top->srcA_i = 0x000000F0;
     top->srcB_i = 0x00000F00;
 
-    top->eval();
+    tick();
 
     EXPECT_EQ(top->ALUResult_o, 0x00000FF0);
 }
@@ -129,7 +133,7 @@ TEST_F(ALUTestbench, XOR_Identity)
     top->srcA_i = 0x12345678;
     top->srcB_i = 0x12345678;
 
-    top->eval();
+    tick();
 
     EXPECT_EQ(top->ALUResult_o, 0);
 }
@@ -144,7 +148,7 @@ TEST_F(ALUTestbench, SLT_SignedCheck)
     top->srcA_i = 0xFFFFFFFF; //-1 in signed
     top->srcB_i = 0x00000001; // 1 in signed
 
-    top->eval();
+    tick();
 
     EXPECT_EQ(top->ALUResult_o, 1);
 }
@@ -156,7 +160,7 @@ TEST_F(ALUTestbench, SLT_FalseCheck)
     top->srcA_i = 10;
     top->srcB_i = 5;
 
-    top->eval();
+    tick();
 
     EXPECT_EQ(top->ALUResult_o, 0);
 }
@@ -169,7 +173,7 @@ TEST_F(ALUTestbench, SLTU_UnsignedCheck)
     top->srcA_i = 0xFFFFFFFF; //max int in unsigned
     top->srcB_i = 0x00000001; //1
 
-    top->eval();
+    tick();
 
     EXPECT_EQ(top->ALUResult_o, 0);
 }
@@ -183,7 +187,7 @@ TEST_F(ALUTestbench, SLL_Basic)
     top->srcA_i = 0x00000001;
     top->srcB_i = 4;
 
-    top->eval();
+    tick();
 
     EXPECT_EQ(top->ALUResult_o, 16);
 }
@@ -196,7 +200,7 @@ TEST_F(ALUTestbench, SRL_ZeroFill)
     top->srcA_i = 0xF0000000; //negative number if signed
     top->srcB_i = 4;
 
-    top->eval();
+    tick();
 
     //expecting 0 filler bits at the top (logical shift)
     EXPECT_EQ(top->ALUResult_o, 0x0F000000);
@@ -210,7 +214,7 @@ TEST_F(ALUTestbench, SRA_SignExtension)
     top->srcA_i = 0xF0000000; //negative number (sign bit 1)
     top->srcB_i = 4;
 
-    top->eval();
+    tick();
 
     //expecting 1 filler bits at the top (arithmetic shift)
     EXPECT_EQ(top->ALUResult_o, 0xFF000000);
@@ -225,13 +229,18 @@ TEST_F(ALUTestbench, Default_Case)
     top->srcA_i = 0xFFFFFFFF;
     top->srcB_i = 0xFFFFFFFF;
 
-    top->eval();
+    tick();
 
     EXPECT_EQ(top->ALUResult_o, 0);
 }
 
 int main(int argc, char **argv)
 {
+
+    Verilated::commandArgs(argc, argv);
+    testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
+    /*
     top = new Vdut;
     tfp = new VerilatedVcdC;
 
@@ -249,4 +258,5 @@ int main(int argc, char **argv)
     delete tfp;
 
     return res;
+    */
 }

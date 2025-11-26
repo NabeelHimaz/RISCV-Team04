@@ -6,7 +6,8 @@ module ALU #(
     input  logic [DATA_WIDTH-1:0]   srcB_i,
     input  logic [3:0]              ALUCtrl_i,
 
-    output logic [DATA_WIDTH-1:0]   ALUResult_o  
+    output logic [DATA_WIDTH-1:0]   ALUResult_o
+    //where is zero flag?
 );
 
     always_comb begin
