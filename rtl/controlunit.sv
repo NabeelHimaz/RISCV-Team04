@@ -12,7 +12,8 @@ module controlunit #(
     output logic                    MemWrite_o,    
     output logic [1:0]              ResultSrc_o,
     output logic [1:0]              MemType_o,
-    output logic                    MemSign_o
+    output logic                    MemSign_o,
+    output logic                    J_o
 );
 
     logic [6:0]     op;
@@ -98,12 +99,17 @@ module controlunit #(
             end
 
             7'd103: begin               //jalr
-                ImmSrc_o = 3'b000;
-                ALUCtrl_o = 4'b0000;    
+                ImmSrc_o = 3'b000;      //sign extend bits [31:20]
+                ALUCtrl_o = 4'b0000;   
+                PCSrc_o = 1; 
             end
             7'd111: begin               //jal
-                ImmSrc_o = 3'b100;
-                ALUCtrl_o = 4'b0000;   
+                ImmSrc_o = 3'b100;      //instruction[31], instruction[19:12], instruction[20] instruction [30:21]
+                ALUCtrl_o = 4'b0000;    //add imm + pc
+                //ALUSrc_o = 1;    defined below       //input the immediate into the ALU
+                //ResultSrc =2'b10 (defined at the bottom)
+                PCSrc_o = 1;
+                //J_o = 1 (defined below)
             end
             default: ;
         endcase 
@@ -114,6 +120,7 @@ module controlunit #(
         RegWrite_o      = (op == 7'd35 || op == 7'd99) ? 1'b0 : 1'b1; 
         ALUSrc_o        = (op == 7'd51) ? 1'b0 : 1'b1;
         PCSrc_o         = (op == 7'd103 || op == 7'd111 || (op == 7'd99 && Zero_i)) ? 1'b1 : 1'b0; //NH & AT: this is relying on a zero flag that I don't think is being properly driven rn?
+        J_o             = (op == 7'd111 || op == 7'd103) ? 1'b1 : 1'b0;
         
         if (op == 7'd3)                             //use data from memory
             ResultSrc_o = 2'b01;
