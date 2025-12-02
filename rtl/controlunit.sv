@@ -14,7 +14,8 @@ module controlunit #(
     output logic [1:0]              MemType_o,
     output logic                    MemSign_o,
     output logic                    JumpSrc_o,
-    output logic                    ALUSrcA_o
+    output logic                    ALUSrcA_o,
+    output logic [2:0]              Branch_o
 );
 
     logic [6:0]     op;
@@ -97,6 +98,13 @@ module controlunit #(
             7'd99: begin                //B-type
                 ImmSrc_o    = 3'b010;
                 ALUCtrl_o   = 4'b0000;  
+                case(funct3)
+                    3'b000: Branch_o = 3'b000;
+                    3'b001: Branch_o = 3'b001;
+                    3'b100: Branch_o = 3'b100;
+                    3'b101: Branch_o = 3'b101;
+                    3'b110: Branch_o = 3'b110;
+                    3'b111: Branch_o = 3'b111;
             end
 
             7'd103: begin               //jalr   
