@@ -1,3 +1,4 @@
+decode decode(
 module top #(
     parameter DATA_WIDTH = 32
 ) (
@@ -6,129 +7,151 @@ module top #(
     output logic [DATA_WIDTH-1:0]   a0
 );
 
-//wires for outputs are declared before each module
-logic           RegWrite;
-logic [3:0]     ALUCtrl;
-logic           ALUSrc;
-logic [2:0]     ImmSrc;
-logic           PCSrc;
-logic           MemWrite;
-logic [1:0]     ResultSrc;
-logic [1:0]     MemType;
-logic           MemSign;
+    // --- control signals ---
+    logic           RegWrite;
+    logic [3:0]     ALUCtrl;
+    logic           ALUSrc;
+    logic [2:0]     ImmSrc;
+    logic           PCSrc;
+    logic           MemWrite;
+    logic [1:0]     ResultSrc;
 
-controlunit controlunit (
-    .Instr_i(Instr),
-    .Zero_i(Zero),         
+    // --- fetch outputs ---
+    logic [DATA_WIDTH-1:0] PCPlus4F;
+    logic [DATA_WIDTH-1:0] PCF;
+    logic [DATA_WIDTH-1:0] Instr;
+    logic [4:0]           A1;
+    logic [4:0]           A2;
+    logic [4:0]           A3_from_fetch; // kept for visibility but not driven into decode
 
-    .RegWrite_o(RegWrite),
-    .ALUCtrl_o(ALUCtrl),     
-    .ALUSrc_o(ALUSrc),
-    .ImmSrc_o(ImmSrc),       
-    .PCSrc_o(PCSrc),
-    .MemWrite_o(MemWrite),    
-    .ResultSrc_o(ResultSrc)
-    .MemSign_o(MemSign),
-    .MemType_o(MemType)
-);
+    // control unit
+    controlunit controlunit (
+        .Instr_i(Instr),
+        .Zero_i(Zero),
 
-logic [4:0] A1;
-logic [4:0] A2;
-logic [4:0] A3;
-logic [DATA_WIDTH-1:0] PCPlus4F;
-logic [DATA_WIDTH-1:0] PCF;
-logic [DATA_WIDTH-1:0] Instr;
+        .RegWrite_o(RegWrite),
+        .ALUCtrl_o(ALUCtrl),
+        .ALUSrc_o(ALUSrc),
+        .ImmSrc_o(ImmSrc),
+        .PCSrc_o(PCSrc),
+        .MemWrite_o(MemWrite),
+        .ResultSrc_o(ResultSrc)
+    );
 
-fetch fetch(
-    .PCSrc_i(PCSrc),
-    .clk(clk),
-    .rst(rst),
-    .PCTargetE_i(PCTargetE),
+    // fetch
+    fetch #(
+        .DATA_WIDTH(DATA_WIDTH)
+    ) fetch_u (
+        .PCSrc_i(PCSrc),
+        .clk(clk),
+        .rst(rst),
+        .PCTargetE_i(PCTargetE),
 
-    .PC_Plus4_F(PCPlus4F),
-    .PC_F(PCF),
-    .Instr_o(Instr),
-    .A1_o(A1),
-    .A2_o(A2),
-    .A3_o(A3)
-);
+        .PC_Plus4_F(PCPlus4F),
+        .PC_F(PCF),
+        .Instr_o(Instr),
+        .A1_o(A1),
+        .A2_o(A2),
+        .A3_o(A3_from_fetch)
+    );
 
-logic [DATA_WIDTH-1:0] PCPlus4D;
-logic [DATA_WIDTH-1:0] PCD;
-logic [DATA_WIDTH-1:0] RD1;
-logic [DATA_WIDTH-1:0] RD2;
-logic [DATA_WIDTH-1:0] ImmExt;
+    // --- decode stage ---
+    logic [DATA_WIDTH-1:0] PCPlus4D;
+    logic [DATA_WIDTH-1:0] PCD;
+    logic [DATA_WIDTH-1:0] RD1;
+    logic [DATA_WIDTH-1:0] RD2;
+    logic [DATA_WIDTH-1:0] ImmExt;
+    logic [4:0]           RdD;
 
-decode decode(
-    .ImmSrc_i(ImmSrc),
-    .PC_Plus4_F_i(PCPlus4F),
-    .PC_F_i(PCF),
-    .clk(clk),
-    .A1_i(A1),
-    .A2_i(A2),
-    .A3_i(A3),
-    .instr_i(Instr),
-    .WD3_i(ResultW),
-    .WE3_i(RegWrite),
+    // ResultW comes from writeback stage (driven later)
+    logic [DATA_WIDTH-1:0] ResultW;
 
-    .RD1_o(RD1),
-    .RD2_o(RD2),
-    .ImmExtD_o(ImmExt),
-    .PC_Plus4D_o(PCPlus4D),
-    .PCD_o(PCD), 
-    .a0_o(a0)
-);
+    // RdW from writeback (destination register number) that will drive decode.A3_i
+    logic [4:0] RdW;
 
-logic [DATA_WIDTH-1:0] PCPlus4E;
-logic [DATA_WIDTH-1:0] ALUResult;
-logic [DATA_WIDTH-1:0] WriteData;
-logic [DATA_WIDTH-1:0] PCTargetE;
-logic Zero;
+    decode decode_u (
+        .ImmSrc_i(ImmSrc),
+        .PC_Plus4_F_i(PCPlus4F),
+        .PC_F_i(PCF),
+        .clk(clk),
+        .A1_i(A1),
+        .A2_i(A2),
+        .A3_i(RdW),              // <- drive decode.A3_i from writeback.RdW
+        .instr_i(Instr),
+        .WD3_i(ResultW),
+        .WE3_i(RegWrite),
 
-execute execute(
-    .RD1E_i(RD1),
-    .RD2E_i(RD2),
-    .PCE_i(PCD),
-    .ImmExtE_i(ImmExt),
-    .PCPlus4E_i(PCPlus4D),
-    .ALUCtrl_i(ALUCtrl),
-    .ALUSrc_i(ALUSrc),
+        .RD1_o(RD1),
+        .RD2_o(RD2),
+        .ImmExtD_o(ImmExt),
+        .PC_Plus4D_o(PCPlus4D),
+        .PCD_o(PCD),
+        .a0_o(a0),
+        .RdD_o(RdD)
+    );
 
-    .ALUResultE_o(ALUResult),
-    .WriteDataE_o(WriteData),
-    .PCPlus4E_o(PCPlus4E),
-    .PCTargetE_o(PCTargetE),
-    .Zero_o(Zero)
-);
+    // --- execute stage ---
+    logic [DATA_WIDTH-1:0] PCPlus4E;
+    logic [DATA_WIDTH-1:0] ALUResultE;
+    logic [DATA_WIDTH-1:0] WriteDataE;
+    logic [DATA_WIDTH-1:0] PCTargetE;
+    logic [4:0]           RdE;
+    logic                 Zero;
+    logic                 JumpCtrl;
 
-logic [DATA_WIDTH-1:0] PCPlus4M;
-logic [DATA_WIDTH-1:0] ALUResultM;
-logic [DATA_WIDTH-1:0] RDM;
+    execute execute_u (
+        .RD1E_i(RD1),
+        .RD2E_i(RD2),
+        .PCE_i(PCD),
+        .ImmExtE_i(ImmExt),
+        .PCPlus4E_i(PCPlus4D),
+        .ALUCtrl_i(ALUCtrl),
+        .ALUSrc_i(ALUSrc),
+        .JumpCtrl_i(JumpCtrl),
+        .RdD_i(RdD),
 
+        .ALUResultE_o(ALUResultE),
+        .WriteDataE_o(WriteDataE),
+        .PCPlus4E_o(PCPlus4E),
+        .PCTargetE_o(PCTargetE),
+        .RdE_o(RdE),
+        .Zero_o(Zero)
+    );
 
-memoryblock memory(
-    .ALUResultM_i(ALUResult),
-    .WriteDataM_i(WriteData),
-    .PCPlus4M_i(PCPlus4E),
-    .MemWrite_i(MemWrite),
-    .clk(clk),
-    .MemSign_i(MemSign),
-    .MemType_i(MemType),
+    // --- memory stage ---
+    logic [DATA_WIDTH-1:0] PCPlus4M;
+    logic [DATA_WIDTH-1:0] ALUResultM;
+    logic [DATA_WIDTH-1:0] RDfromMem;
+    logic [4:0]           RdM;
+    logic [1:0]           MemType;
+    logic                 MemSign;
 
-    .ALUResultM_o(ALUResultM),
-    .RD_o(RDM),
-    .PCPlus4M_o(PCPlus4M)
-);
+    memoryblock memory_u (
+        .ALUResultM_i(ALUResultE),
+        .WriteDataM_i(WriteDataE),
+        .PCPlus4M_i(PCPlus4E),
+        .MemWrite_i(MemWrite),
+        .clk(clk),
+        .MemType_i(MemType),
+        .MemSign_i(MemSign),
+        .RdE_i(RdE),
 
-logic [DATA_WIDTH-1:0] ResultW;
+        .ALUResultM_o(ALUResultM),
+        .RD_o(RDfromMem),
+        .PCPlus4M_o(PCPlus4M),
+        .RdM_o(RdM)
+    );
 
-writeback writeback(
-    .ALUResultM_i(ALUResultM),
-    .ReadDataW_i(RDM),
-    .PCPlus4W_i(PCPlus4M),
-    .ResultSrc_i(ResultSrc),
+    // --- writeback stage ---
+    writeback writeback_u (
+        .ALUResultM_i(ALUResultM),
+        .ReadDataW_i(RDfromMem),
+        .PCPlus4W_i(PCPlus4M),
+        .ResultSrc_i(ResultSrc),
+        .RdW_i(RdM),
 
-    .ResultW_o(ResultW)
-);
+        .ResultW_o(ResultW),
+        .RdW_o(RdW)
+    );
 
 endmodule

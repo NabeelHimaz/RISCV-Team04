@@ -9,11 +9,13 @@ module execute #(
     input logic [3:0] ALUCtrl_i,
     input logic ALUSrc_i,
     input logic JumpCtrl_i  //This deals with the jump instruction 
+    input logic [4:0] RdD_i;
 
     output logic [DATA_WIDTH-1:0] ALUResultE_o,
     output logic [DATA_WIDTH-1:0] WriteDataE_o,
     output logic [DATA_WIDTH-1:0] PCPlus4E_o,
     output logic [DATA_WIDTH-1:0] PCTargetE_o,
+    output logic [4:0] RdE_o;
     output logic Zero_o
 );
 
@@ -41,5 +43,6 @@ always_comb begin
 end
 
 assign PCTargetE_o = (JumpCtrl_i) ? PC_TargetE : ALUResult_o; //mux for jump instruction 
+assign RdE_o = RdD_i;
 
 endmodule

@@ -8,10 +8,12 @@ module memoryblock #(
     input logic                     clk,
     input logic [1:0]               MemType_i,
     input logic                     MemSign_i,
+    input logic [4:0]               RdE_i,
 
     output logic [DATA_WIDTH-1:0] ALUResultM_o,
     output logic [DATA_WIDTH-1:0] RD_o,
-    output logic [DATA_WIDTH-1:0] PCPlus4M_o
+    output logic [DATA_WIDTH-1:0] PCPlus4M_o,
+    output logic [4:0]            RdM_o;
 );
 
 data_mem_top datamem(
@@ -28,5 +30,7 @@ data_mem_top datamem(
 
 assign ALUResultM_o = ALUResultM_i; 
 assign PCPlus4M_o = PCPlus4M_i;
+assign RdM_o = RdE_i;
+
 
 endmodule

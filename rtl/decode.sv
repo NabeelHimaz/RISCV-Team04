@@ -13,7 +13,7 @@ module decode #(
     //Register File inputs 
     input logic [4:0] A1_i,
     input logic [4:0] A2_i,
-    input logic [4:0] A3_i,
+    input logic [4:0] RdW_o,
     input logic [DATA_WIDTH-1:0] instr_i,
     input logic [DATA_WIDTH-1:0] WD3_i,
     input logic WE3_i,
@@ -30,15 +30,18 @@ module decode #(
     output logic [DATA_WIDTH-1:0] PCD_o, //this goes to execute where it is added to the Immediate for JMP
     
     //test output 
-    output logic [DATA_WIDTH-1:0] a0_o
+    output logic [DATA_WIDTH-1:0] a0_o,
+    output logic [4:0] RdD_o; //new output we need
 
 );
+    
 
-    extend extend(
+
+    extend extend_u(
         .instr_i(instr_i),
         .ImmSrc_i(ImmSrc_i),
 
-        .ImmExt_o(ImmExtD_o)
+        .immop_o(ImmExtD_o)
     );
 
 
@@ -46,7 +49,7 @@ module decode #(
         .clk(clk),
         .AD1_i(A1_i),
         .AD2_i(A2_i),
-        .AD3_i(A3_i),
+        .AD3_i(RdW_o),
 
         .WE3_i(WE3_i),
         .WD3_i(WD3_i),
@@ -58,5 +61,6 @@ module decode #(
 
     assign PCD_o = PC_F_i;
     assign PC_Plus4D_o = PC_Plus4_F_i;
+    assign RdD_o = instr_i[11:7];
     
 endmodule
