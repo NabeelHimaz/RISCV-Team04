@@ -20,7 +20,7 @@ assign addr_i_i = {{addr_i[31:2]}, {2'b0}};
 
 data_mem_i data_mem_i (
     .mem_type_i(mem_type_i),
-    .addr_i(addr_i_i),
+    .addr_i(addr_i),
     .read_data_i(Read_Data),
     .write_data_i(write_data_i),
     .write_data_o(Write_Data)
@@ -38,7 +38,7 @@ data_mem data_mem(
 data_mem_o data_mem_o(
     .mem_type_i(mem_type_i),
     .mem_sign_i(mem_sign_i),
-    .addr_i(addr_i_i),
+    .addr_i(addr_i),
     .read_data_i(Read_Data),
     .read_data_o(read_data_o)
     

@@ -19,14 +19,14 @@ always_comb begin
     case (mem_type_i)
         2'b01:
             case (mem_sign_i)
-                1'b0: 
+                1'b0:  // mem_sign = 0 means SIGNED (LB)
                     case(logic_byte_i)
                         2'b00: read_data_o ={{24{read_data_i[7]}},  {read_data_i[7:0]}};
                         2'b01: read_data_o ={{24{read_data_i[15]}}, {read_data_i[15:8]}};
                         2'b10: read_data_o ={{24{read_data_i[23]}}, {read_data_i[23:16]}};
                         2'b11: read_data_o ={{24{read_data_i[31]}}, {read_data_i[31:24]}};
                     endcase
-                1'b1:
+                1'b1:  // mem_sign = 1 means UNSIGNED (LBU)
                     case(logic_byte_i)
                         2'b00: read_data_o ={{24{1'b0}}, {read_data_i[7:0]}};
                         2'b01: read_data_o ={{24{1'b0}}, {read_data_i[15:8]}};

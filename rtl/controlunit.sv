@@ -28,6 +28,7 @@ module controlunit #(
 
     always_comb begin 
         ImmSrc_o = 3'b000;
+        Branch_o = 3'b010; //added otherwise latches to last branch
         case(op)
             7'd3: begin                                                     //I-type 
                 ALUCtrl_o = 4'b0000;
@@ -62,7 +63,8 @@ module controlunit #(
             end
 
             //NH: this logic doesn't work 100%, check testbench file
-            7'd19, 7'd51: begin                                             //Arithmetic I-type and R-type                   
+            7'd19, 7'd51: begin    
+                Branch_o = 3'b010;                                         //Arithmetic I-type and R-type                   
 
                 case(funct3)
                     3'b000: ALUCtrl_o = (funct7_5 && (op != 7'd19)) ? 4'b0001 : 4'b0000;     //sub, add
@@ -79,11 +81,13 @@ module controlunit #(
             7'd23, 7'd55: begin //U-type
                 ImmSrc_o    = 3'b011;
                 ALUCtrl_o   = 4'b0000;  
+                Branch_o = 3'b010;
             end
 
             7'd35: begin                //S-type
                 ImmSrc_o    = 3'b001;
                 ALUCtrl_o   = 4'b0000;
+                Branch_o = 3'b010;
                 //NH: syntax fix on line below, make sure to pull through to latest ver of controlunit
                 MemSign_o = 1'b0;
                 case(funct3)
@@ -129,9 +133,9 @@ module controlunit #(
     always_comb begin
         MemWrite_o      = (op == 7'd35) ? 1'b1 : 1'b0;
         RegWrite_o      = (op == 7'd35 || op == 7'd99) ? 1'b0 : 1'b1; 
-        ALUSrcB_o       = (op == 7'd51) ? 1'b0 : 1'b1;
+        ALUSrcB_o       = (op == 7'd51 || op == 7'd99) ? 1'b0 : 1'b1; //added branch 99 for Branch instructions
         PCSrc_o         = (op == 7'd103 || op == 7'd111 || (op == 7'd99 && branchTaken_i)) ? 1'b1 : 1'b0; 
-        JumpSrc_o       = (op == 7'd111 || op == 7'd103) ? 1'b1 : 1'b0;
+        JumpSrc_o       = (op == 7'd103) ? 1'b1 : 1'b0;
         ALUSrcA_o       = (op == 7'd23) ? 1'b1 : 1'b0;
 
         if (op == 7'd3)                             //use data from memory

@@ -43,6 +43,10 @@ TEST_F(CpuTestbench, TestPdf)
     setData("reference/gaussian.mem");
     initSimulation();
     runSimulation(CYCLES * 100);
+    
+    std::cout << "DEBUG: Final a0 = " << top_->a0 << " (expected 15363)" << std::endl;
+    std::cout << "DEBUG: Difference = " << (top_->a0 - 15363) << std::endl;
+    
     EXPECT_EQ(top_->a0, 15363);
 }
 
