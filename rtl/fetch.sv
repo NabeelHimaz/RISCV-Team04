@@ -45,5 +45,3 @@ assign PC_F = PC; //this PC value is passed to the decode and then execute
 
 
 endmodule
-
-

@@ -1,0 +1,9 @@
+.vscode
+obj_dir/
+*.bin
+*.dis
+*.vcd
+*.hex
+a.out
+a.out.reloc
+test_out/

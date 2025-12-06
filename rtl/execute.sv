@@ -23,7 +23,6 @@ module execute #(
 
 logic [DATA_WIDTH-1:0]  srcAE;
 logic [DATA_WIDTH-1:0]  SrcBE;
-logic [DATA_WIDTH-1:0]  PC_TargetE; //PC_TargetE before it goes into mux with JUMP instruction 
 
 
 assign srcAE = (ALUSrcA_i) ? PCE_i : RD1E_i; //mux for choosing 1st input into ALU 
@@ -50,7 +49,7 @@ always_comb begin
     WriteDataE_o = RD2E_i;
 end
 
-assign PCTargetE_o = (JumpCtrl_i) ? PC_TargetE : ALUResultE_o; //mux for jump instruction 
+assign PCTargetE_o = (JumpCtrl_i) ? ALUResultE_o : PCTargetE; //mux for jump instruction (switched order when debugging)
 assign RdE_o = RdD_i;
 
 endmodule
