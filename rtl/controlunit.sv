@@ -2,20 +2,18 @@ module controlunit #(
     parameter DATA_WIDTH = 32
 ) (
     input  logic [DATA_WIDTH-1:0]   Instr_i,
-    input  logic                    branchTaken_i,  //input from ALU
 
     output logic                    RegWrite_o,
     output logic [3:0]              ALUCtrl_o,      //determined using func3 and the 5th bits of op and funct7
-    output logic                    ALUSrcB_o,
+    output logic                    ALUSrc_o,
     output logic [2:0]              ImmSrc_o,       //decides which instruction bits to use as the immediate
-    output logic                    PCSrc_o,
     output logic                    MemWrite_o,    
     output logic [1:0]              ResultSrc_o,
     output logic [1:0]              MemType_o,
     output logic                    MemSign_o,
     output logic                    JumpSrc_o,
-    output logic                    ALUSrcA_o,
-    output logic [2:0]              Branch_o
+    output logic [2:0]              Branch_o,
+    output logic                    BranchInstr_o
 );
 
     logic [6:0]     op;
@@ -117,14 +115,10 @@ module controlunit #(
             7'd103: begin               //jalr   
                 ImmSrc_o = 3'b000;      //sign extend bits [31:20]
                 ALUCtrl_o = 4'b0000;   
-                PCSrc_o = 1; 
             end
             7'd111: begin               //jal
                 ImmSrc_o = 3'b100;      //instruction[31], instruction[19:12], instruction[20] instruction [30:21]
                 ALUCtrl_o = 4'b0000;    //add imm + pc
-                                        //ALUSrcB_o = 1; defined below input the immediate into the ALU
-                                        //ResultSrc =2'b10 (defined at the bottom)
-                PCSrc_o = 1;
             end
             default: ;
         endcase 
@@ -133,10 +127,9 @@ module controlunit #(
     always_comb begin
         MemWrite_o      = (op == 7'd35) ? 1'b1 : 1'b0;
         RegWrite_o      = (op == 7'd35 || op == 7'd99) ? 1'b0 : 1'b1; 
-        ALUSrcB_o       = (op == 7'd51 || op == 7'd99) ? 1'b0 : 1'b1; //added branch 99 for Branch instructions
-        PCSrc_o         = (op == 7'd103 || op == 7'd111 || (op == 7'd99 && branchTaken_i)) ? 1'b1 : 1'b0; 
+        ALUSrc_o        = (op == 7'd51 || op == 7'd99) ? 1'b0 : 1'b1; 
         JumpSrc_o       = (op == 7'd103) ? 1'b1 : 1'b0;
-        ALUSrcA_o       = (op == 7'd23) ? 1'b1 : 1'b0;
+        BranchInstr_o   = (op == 7'd99) ? 1'b1 : 1'b0;
 
         if (op == 7'd3)                             //use data from memory
             ResultSrc_o = 2'b01;
