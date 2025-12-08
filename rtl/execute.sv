@@ -12,6 +12,8 @@ module execute #(
     input logic                     JumpCtrl_i,  //This deals with the jump instruction 
     input logic [4:0]               RdD_i,
     input logic [2:0]               BranchSrc_i, //controls branching MUX
+    input logic [4:0]               Rs1D_i,      
+    input logic [4:0]               Rs2D_i,      
 
     
     input logic [DATA_WIDTH-1:0]    ResultW_i,   //result from writeback
@@ -22,6 +24,9 @@ module execute #(
     input logic [1:0]               ForwardAEctrl_i,
     input logic [1:0]               ForwardBEctrl_i,
 
+    //to hazard unit
+    output logic [4:0]              Rs1E_o,
+    output logic [4:0]              Rs2E_o,
 
     output logic [DATA_WIDTH-1:0]   ALUResultE_o,
     output logic [DATA_WIDTH-1:0]   WriteDataE_o,
@@ -82,5 +87,7 @@ end
 
 assign PCTargetE_o = (JumpCtrl_i) ? ALUResultE_o : PCTargetE; //mux for jump instruction (switched order when debugging)
 assign RdE_o = RdD_i;
+assign Rs1E_o = Rs1D_i;  // Pass through source register 1 from decode
+assign Rs2E_o = Rs2D_i;  // Pass through source register 2 from decode
 
 endmodule

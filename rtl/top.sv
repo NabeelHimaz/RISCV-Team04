@@ -13,7 +13,7 @@ logic                  PCSrcE; // Feedback from Execute
 // Decode Stage Signals
 logic [DATA_WIDTH-1:0] InstrD, PCD, PCPlus4D;
 logic [DATA_WIDTH-1:0] RD1D, RD2D, ImmExtD;
-logic [4:0]            A1D, A2D, A3D, RDD;
+logic [4:0]            A1D, A2D, A3D, RDD, RdD;
 logic [DATA_WIDTH-1:0] a0_internal;
 
 // Control Signals (Decode)
@@ -24,9 +24,9 @@ logic [2:0] ImmSrcD;
 
 // Execute Stage Signals
 logic [DATA_WIDTH-1:0] RD1E, RD2E, PCE, ImmExtE, PCPlus4E;
-logic [4:0]            RDE;
+logic [4:0]            RDE, RdE_out, Rs1E_out, Rs2E_out;
 logic [DATA_WIDTH-1:0] ALUResultE, WriteDataE, PCTargetE;
-logic                  ZeroE;
+logic                  ZeroE, BranchTakenE;
 
 // Control Signals (Execute)
 logic       RegWriteE, MemWriteE, ALUSrcE, MemSignE, JumpE, BranchE;
@@ -50,6 +50,10 @@ logic [4:0]            RDW;
 logic       RegWriteW;
 logic [1:0] ResultSrcW;
 
+// Hazard Unit Signals
+logic       StallF, StallD, FlushD, FlushE;
+logic [1:0] ForwardAE, ForwardBE;
+
 
 /////////////////// Fetch Stage //////////////////////
 logic [4:0] unused_A1, unused_A2, unused_A3;
@@ -68,7 +72,7 @@ fetch fetch(
 
 // F/D Pipeline Register Module
 pipereg_FD_1 #(DATA_WIDTH) fd_reg (
-    .clk(clk), .rst(rst), .en(1'b1), .clr(PCSrcE),
+    .clk(clk), .rst(rst), .en(~StallF), .clr(FlushD),
     .InstrF(InstrF), .PCF(PCF), .PCPlus4F(PCPlus4F),
     
     .InstrD(InstrD), .PCD(PCD), .PCPlus4D(PCPlus4D)
@@ -109,7 +113,8 @@ decode decode(
     .clk(clk),
     .A1_i(A1D),
     .A2_i(A2D),
-    .A3_i(RDW),
+    .RdF_i(RDD),
+    .RdW_i(RDW),
     .instr_i(InstrD),
     .WD3_i(ResultW),
     .WE3_i(RegWriteW),
@@ -119,14 +124,15 @@ decode decode(
     .ImmExtD_o(ImmExtD),
     .PC_Plus4D_o(pcplus4_dummy_d),
     .PCD_o(pc_dummy_d), 
-    .a0_o(a0_internal)
+    .a0_o(a0_internal),
+    .RdD_o(RdD)
 );
 
 assign a0 = a0_internal;
 
 // D/E Pipeline Register Module
 pipereg_DE_1 #(DATA_WIDTH) de_reg (
-    .clk(clk), .rst(rst), .en(1'b1), .clr(PCSrcE),
+    .clk(clk), .rst(rst), .en(~StallD), .clr(FlushE),
     
     // Control
     .RegWriteD(RegWriteD), .MemWriteD(MemWriteD), .JumpD(JumpD), .BranchD(BranchD),
@@ -134,13 +140,44 @@ pipereg_DE_1 #(DATA_WIDTH) de_reg (
     .ALUCtrlD(ALUCtrlD),
     
     // Data
-    .RD1D(RD1D), .RD2D(RD2D), .PCD(PCD), .ImmExtD(ImmExtD), .PCPlus4D(PCPlus4D), .RDD(RDD),
+    .RD1D(RD1D), .RD2D(RD2D), .PCD(PCD), .ImmExtD(ImmExtD), .PCPlus4D(PCPlus4D), .RDD(RdD),
     
     // Outputs
     .RegWriteE(RegWriteE), .MemWriteE(MemWriteE), .JumpE(JumpE), .BranchE(BranchE),
     .ALUSrcE(ALUSrcE), .MemSignE(MemSignE), .ResultSrcE(ResultSrcE), .MemTypeE(MemTypeE),
     .ALUCtrlE(ALUCtrlE),
     .RD1E(RD1E), .RD2E(RD2E), .PCE(PCE), .ImmExtE(ImmExtE), .PCPlus4E(PCPlus4E), .RDE(RDE)
+);
+
+////////////////////// Hazard Unit ////////////////////
+hazardunit hazard_unit (
+    // From Decode
+    .Rs1D_i(A1D),
+    .Rs2D_i(A2D),
+    .Instr_i(InstrD), //this isn't on schematic 
+    
+    // From Execute
+    .Rs1E_i(Rs1E_out),
+    .Rs2E_i(Rs2E_out),
+    .RdE_i(RdE_out),
+    .PCSrcE_i(PCSrcE),
+    .ResultSrcE_i(ResultSrcE[0]),
+    
+    // From Memory
+    .RdM_i(RDM),
+    .RegWriteM_i(RegWriteM),
+    
+    // From Writeback
+    .RdW_i(RDW),
+    .RegWriteW_i(RegWriteW),
+    
+    // Outputs
+    .StallF_o(StallF),
+    .StallD_o(StallD),
+    .FlushD_o(FlushD),
+    .FlushE_o(FlushE),
+    .ForwardAE_o(ForwardAE),
+    .ForwardBE_o(ForwardBE)
 );
 
 ////////////////////// Exectute Stage ////////////////////
@@ -153,17 +190,29 @@ execute execute(
     .ImmExtE_i(ImmExtE),
     .PCPlus4E_i(PCPlus4E),
     .ALUCtrl_i(ALUCtrlE),
-    .ALUSrc_i(ALUSrcE),
+    .ALUSrcB_i(ALUSrcE),
+    .ALUSrcA_i(1'b0),
     .JumpCtrl_i(JumpE),
+    .RdD_i(RDE),
+    .BranchSrc_i({1'b0, BranchE}),
+    .Rs1D_i(A1D),
+    .Rs2D_i(A2D),
+    .ResultW_i(ResultW),
+    .ALUResultM_i(ALUResultM),
+    .ForwardAEctrl_i(ForwardAE),
+    .ForwardBEctrl_i(ForwardBE),
 
+    .Rs1E_o(Rs1E_out),
+    .Rs2E_o(Rs2E_out),
     .ALUResultE_o(ALUResultE),
     .WriteDataE_o(WriteDataE),
     .PCPlus4E_o(pcplus4_dummy_e),
     .PCTargetE_o(PCTargetE),
-    .Zero_o(ZeroE)
+    .RdE_o(RdE_out),
+    .branchTaken_o(BranchTakenE)
 );
 
-assign PCSrcE = (BranchE & ZeroE) | JumpE;
+assign PCSrcE = BranchTakenE | JumpE;
 
 // E/M Pipeline Register Module
 pipereg_EM_1 #(DATA_WIDTH) em_reg (
@@ -220,6 +269,7 @@ writeback writeback(
     .ReadDataW_i(ReadDataW),
     .PCPlus4W_i(PCPlus4W),
     .ResultSrc_i(ResultSrcW),
+    .RdM_i(RDW),
 
     .ResultW_o(ResultW)
 );
