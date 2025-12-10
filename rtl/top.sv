@@ -3,7 +3,7 @@ module top #(
 ) (
     input  logic                    clk,
     input  logic                    rst,
-    input  logic                    trigger, // Added missing testbench signal
+    input  logic                    trigger, 
     output logic [DATA_WIDTH-1:0]   a0
 );
 
@@ -80,6 +80,7 @@ fetch fetch(
     .clk(clk),
     .rst(rst),
     .StallF(StallF),
+    .trigger(trigger),
     .PCTargetE_i(PCTargetE),
     .PC_Plus4_F(PCPlus4F),
     .PC_F(PCF),

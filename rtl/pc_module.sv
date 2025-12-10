@@ -3,7 +3,8 @@ module pc_module #(
 ) (
     input  logic                  clk,
     input  logic                  rst,
-    input  logic                  en,     // Enable signal (active high) - Used for stalling
+    input  logic                  en,
+    input  logic                  trigger,     // Enable signal (active high) - Used for stalling
     input  logic                  PCsrc,
     input  logic [DATA_WIDTH-1:0] PCTargetE_i, 
 
@@ -27,7 +28,7 @@ module pc_module #(
     );
 
     always_ff @(posedge clk) begin
-        if (rst)
+        if (rst & !trigger)
             PC <= 32'hBFC00000;
         else if (en)             // Only update if enabled
             PC <= next_PC;

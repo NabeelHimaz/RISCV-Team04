@@ -5,6 +5,7 @@ module fetch #(
     input logic clk,
     input logic rst,
     input logic StallF,
+    input logic trigger,
     input logic [DATA_WIDTH-1:0] PCTargetE_i, //this is the jump PC value coming after Execute
 
     output logic [DATA_WIDTH-1:0] PC_Plus4_F, //this is the next instruction 
@@ -25,6 +26,7 @@ module fetch #(
         .clk(clk),
         .rst(rst),
         .en(~StallF),
+        .trigger(trigger),
         .PCsrc(PCSrc_i),
         .PCTargetE_i(PCTargetE_i),
 
