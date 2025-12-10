@@ -1,10 +1,11 @@
 module pc_module #(
     parameter DATA_WIDTH = 32
 ) (
-    input  logic clk,
-    input  logic rst,
-    input  logic PCsrc,
-    input logic [DATA_WIDTH-1:0] PCTargetE_i, 
+    input  logic                  clk,
+    input  logic                  rst,
+    input  logic                  en,     // Enable signal (active high) - Used for stalling
+    input  logic                  PCsrc,
+    input  logic [DATA_WIDTH-1:0] PCTargetE_i, 
 
     output logic [DATA_WIDTH-1:0] PC,
     output logic [DATA_WIDTH-1:0] PC_Plus4 
@@ -28,7 +29,7 @@ module pc_module #(
     always_ff @(posedge clk) begin
         if (rst)
             PC <= 32'hBFC00000;
-        else
+        else if (en)             // Only update if enabled
             PC <= next_PC;
     end
 endmodule

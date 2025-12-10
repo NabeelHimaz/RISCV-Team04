@@ -24,17 +24,21 @@ logic [2:0] BranchCtrlD;
 logic [1:0] ResultSrcD, MemTypeD;
 logic [3:0] ALUCtrlD;
 logic [2:0] ImmSrcD;
+logic [1:0] Op1SrcD; 
 
 // Execute Stage Signals
 logic [DATA_WIDTH-1:0] RD1E, RD2E, PCE, ImmExtE, PCPlus4E;
 logic [4:0]            RDE, RdE_out, Rs1E_out, Rs2E_out;
+logic [4:0]            Rs1E, Rs2E;
 logic [DATA_WIDTH-1:0] ALUResultE, WriteDataE, PCTargetE;
-logic                  BranchTakenE; // Kept but marked unused below
+logic                  BranchTakenE;
 
 // Control Signals (Execute)
 logic       RegWriteE, MemWriteE, ALUSrcE, MemSignE, JumpE, BranchE;
 logic [1:0] ResultSrcE, MemTypeE;
 logic [3:0] ALUCtrlE;
+logic [2:0] BranchCtrlE; 
+logic [1:0] Op1SrcE; 
 
 // Memory Stage Signals
 logic [DATA_WIDTH-1:0] ALUResultM, WriteDataM, PCPlus4M;
@@ -57,21 +61,17 @@ logic [1:0] ResultSrcW;
 logic       StallF, StallD, FlushD, FlushE;
 logic [1:0] ForwardAE, ForwardBE;
 
-// Dummy signals for unused outputs
+// Dummy signals
 logic [4:0]            unused_RdM_o, unused_RdW_o;
 logic [DATA_WIDTH-1:0] unused_pcplus4_d, unused_pc_d, unused_pcplus4_e;
 logic [4:0]            unused_A1, unused_A2, unused_A3;
+logic                  unused_JumpSrcD;
+logic                  unused_BranchTakenE;
+logic                  unused_trigger;
 
-// Suppress unused signal warnings for specific wires
-logic [2:0] unused_BranchCtrlD;
-logic       unused_JumpSrcD;
-logic       unused_BranchTakenE;
-logic       unused_trigger;
-assign unused_BranchCtrlD = BranchCtrlD;
 assign unused_JumpSrcD = JumpSrcD;
 assign unused_BranchTakenE = BranchTakenE;
 assign unused_trigger = trigger;
-
 
 /////////////////// Fetch Stage //////////////////////
 
@@ -79,8 +79,8 @@ fetch fetch(
     .PCSrc_i(PCSrcE),
     .clk(clk),
     .rst(rst),
+    .StallF(StallF),
     .PCTargetE_i(PCTargetE),
-
     .PC_Plus4_F(PCPlus4F),
     .PC_F(PCF),
     .Instr_o(InstrF),
@@ -91,10 +91,8 @@ fetch fetch(
 pipereg_FD_1 #(DATA_WIDTH) fd_reg (
     .clk(clk), .rst(rst), .en(~StallF), .clr(FlushD),
     .InstrF(InstrF), .PCF(PCF), .PCPlus4F(PCPlus4F),
-    
     .InstrD(InstrD), .PCD(PCD), .PCPlus4D(PCPlus4D)
 );
-
 
 ///////////////// Decode Stage /////////////////
 
@@ -108,10 +106,10 @@ controlunit controlunit (
     .ResultSrc_o(ResultSrcD),
     .MemSign_o(MemSignD),
     .MemType_o(MemTypeD),
-    
     .JumpSrc_o(JumpSrcD),
     .Branch_o(BranchCtrlD),
-    .BranchInstr_o(BranchD)
+    .BranchInstr_o(BranchD),
+    .Op1Src_o(Op1SrcD) 
 );
 
 // Local Decode Logic
@@ -132,7 +130,6 @@ decode decode(
     .instr_i(InstrD),
     .WD3_i(ResultW),
     .WE3_i(RegWriteW),
-
     .RD1_o(RD1D),
     .RD2_o(RD2D),
     .ImmExtD_o(ImmExtD),
@@ -153,15 +150,22 @@ pipereg_DE_1 #(DATA_WIDTH) de_reg (
     .RegWriteD(RegWriteD), .MemWriteD(MemWriteD), .JumpD(JumpD), .BranchD(BranchD),
     .ALUSrcD(ALUSrcD), .MemSignD(MemSignD), .ResultSrcD(ResultSrcD), .MemTypeD(MemTypeD),
     .ALUCtrlD(ALUCtrlD),
+    .BranchCtrlD(BranchCtrlD),
+    .Op1SrcD(Op1SrcD), 
     
     // Data
-    .RD1D(RD1D), .RD2D(RD2D), .PCD(PCD), .ImmExtD(ImmExtD), .PCPlus4D(PCPlus4D), .RDD(RdD),
+    .RD1D(RD1D), .RD2D(RD2D), .PCD(PCD), .ImmExtD(ImmExtD), .PCPlus4D(PCPlus4D), 
+    .RDD(RdD), 
+    .Rs1D(A1D), .Rs2D(A2D),
     
     // Outputs
     .RegWriteE(RegWriteE), .MemWriteE(MemWriteE), .JumpE(JumpE), .BranchE(BranchE),
     .ALUSrcE(ALUSrcE), .MemSignE(MemSignE), .ResultSrcE(ResultSrcE), .MemTypeE(MemTypeE),
     .ALUCtrlE(ALUCtrlE),
-    .RD1E(RD1E), .RD2E(RD2E), .PCE(PCE), .ImmExtE(ImmExtE), .PCPlus4E(PCPlus4E), .RDE(RDE)
+    .BranchCtrlE(BranchCtrlE),
+    .Op1SrcE(Op1SrcE), 
+    .RD1E(RD1E), .RD2E(RD2E), .PCE(PCE), .ImmExtE(ImmExtE), .PCPlus4E(PCPlus4E), .RDE(RDE),
+    .Rs1E(Rs1E), .Rs2E(Rs2E)
 );
 
 ////////////////////// Hazard Unit ////////////////////
@@ -194,7 +198,7 @@ hazardunit hazard_unit (
     .ForwardBE_o(ForwardBE)
 );
 
-////////////////////// Exectute Stage ////////////////////
+////////////////////// Execute Stage ////////////////////
 
 execute execute(
     .RD1E_i(RD1E),
@@ -203,10 +207,10 @@ execute execute(
     .ImmExtE_i(ImmExtE),
     .PCPlus4E_i(PCPlus4E),
     .RdD_i(RDE),
-    // ADDED PADDING -> CHECK WHAT'S GOING ON HERE
-    .BranchSrc_i({2'b00, BranchE}), 
-    .Rs1D_i(A1D),
-    .Rs2D_i(A2D),
+    .Rs1E_i(Rs1E),
+    .Rs2E_i(Rs2E),
+    .BranchSrc_i(BranchCtrlE),
+    
     .ResultW_i(ResultW),
     .ALUResultM_i(ALUResultM),
     
@@ -218,6 +222,7 @@ execute execute(
     .BranchE_i(BranchE),
     .ALUCtrlE_i(ALUCtrlE),
     .ALUSrcE_i(ALUSrcE),
+    .Op1SrcE_i(Op1SrcE), 
     
     // From hazard unit
     .ForwardAEctrl_i(ForwardAE),
@@ -264,10 +269,8 @@ memoryblock memory(
     .clk(clk),
     .MemSign_i(MemSignM),
     .MemType_i(MemTypeM),
-    
     .RdE_i(RDM), 
     .RdM_o(unused_RdM_o),        
-
     .ALUResultM_o(ALUResultW_internal), 
     .RD_o(ReadDataM),
     .PCPlus4M_o(PCPlus4W_internal)
@@ -297,7 +300,6 @@ writeback writeback(
     .RdM_i(RDW),
     // Connected Dummy
     .RdW_o(unused_RdW_o),
-
     .ResultW_o(ResultW)
 );
 

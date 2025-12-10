@@ -22,8 +22,9 @@ module regfile #(
     logic [DATA_WIDTH-1:0] regs [2**ADDRESS_WIDTH-1:0];
 
 
-    //write logic with x0 protection 
-    always_ff @(posedge clk) begin
+    //write logic with x0 protection
+    //Test if this is 100% correct
+    always_ff @(negedge clk) begin
         if (WE3_i & (AD3_i != 5'b0)) begin
             regs[AD3_i] <= WD3_i;
         end
@@ -32,9 +33,9 @@ module regfile #(
     //read logic with x0 protection 
     always_comb begin 
         RD1_o = (AD1_i == 5'b0) ? {DATA_WIDTH{1'b0}} : regs[AD1_i];
-        RD2_o = (AD2_i == 5'b0) ? {DATA_WIDTH{1'b0}} : regs[AD2_i];       
+        RD2_o = (AD2_i == 5'b0) ? {DATA_WIDTH{1'b0}} : regs[AD2_i];
     end
-
+    
     //output of regfile for testing purposes
     assign a0_o = regs[10];
 

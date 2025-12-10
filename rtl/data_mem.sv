@@ -12,7 +12,10 @@ module data_mem #(
 
     logic [DATA_WIDTH-1:0] ram_array [17'h1FFFF : 17'h0]; 
 
-    initial begin 
+    initial begin
+        for (int i = 0; i <= 17'h1FFFF; i++) begin
+            ram_array[i] = 8'h00;
+        end
         $readmemh("data.hex", ram_array, 17'h10000);
         $display ("Loaded data_mem.");
     end;
@@ -21,11 +24,10 @@ module data_mem #(
     
     always_ff @(negedge clk_i) begin
         if (write_en_i) begin
-            ram_array[addr_i[16:0]] <= write_data_i[7:0];
+            ram_array[addr_i[16:0]]     <= write_data_i[7:0];
             ram_array[addr_i[16:0] + 1] <= write_data_i[15:8];
             ram_array[addr_i[16:0] + 2] <= write_data_i[23:16];
             ram_array[addr_i[16:0] + 3] <= write_data_i[31:24];
         end
     end 
-
 endmodule

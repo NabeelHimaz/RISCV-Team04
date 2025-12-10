@@ -4,6 +4,7 @@ module fetch #(
     input logic PCSrc_i,
     input logic clk,
     input logic rst,
+    input logic StallF,
     input logic [DATA_WIDTH-1:0] PCTargetE_i, //this is the jump PC value coming after Execute
 
     output logic [DATA_WIDTH-1:0] PC_Plus4_F, //this is the next instruction 
@@ -16,13 +17,14 @@ module fetch #(
     output logic [4:0] A3_o
 );
 
-logic [DATA_WIDTH-1:0]  PC;
+    logic [DATA_WIDTH-1:0]  PC;
 
-pc_module #(
+    pc_module #(
         .DATA_WIDTH(DATA_WIDTH)
     ) pc (
         .clk(clk),
         .rst(rst),
+        .en(~StallF),
         .PCsrc(PCSrc_i),
         .PCTargetE_i(PCTargetE_i),
 
@@ -30,18 +32,15 @@ pc_module #(
         .PC_Plus4(PC_Plus4_F)
     );
 
-instrmem instruction_memory (
-    .addr_i(PC),
-    
-    .read_data_o(Instr_o)
-);
+    instrmem instruction_memory (
+        .addr_i(PC),
+        .read_data_o(Instr_o)
+    );
 
-assign A1_o = Instr_o[19:15];
-assign A2_o = Instr_o [24:20];
-assign A3_o = Instr_o [11:7];
+    assign A1_o = Instr_o[19:15];
+    assign A2_o = Instr_o[24:20];
+    assign A3_o = Instr_o[11:7];
 
-assign PC_F = PC; //this PC value is passed to the decode and then execute 
-
-
+    assign PC_F = PC; //this PC value is passed to the decode and then execute 
 
 endmodule
