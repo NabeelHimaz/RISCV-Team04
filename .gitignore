@@ -6,3 +6,4 @@ obj_dir/
 *.hex
 a.out
 a.out.reloc
+Zone.Identifier
