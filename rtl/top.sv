@@ -123,21 +123,22 @@ logic [DATA_WIDTH-1:0] RDM;
 logic [4:0]           RdM;
 
 
-memoryblock memory(
-    .ALUResultM_i(ALUResult),
-    .WriteDataM_i(WriteData),
-    .PCPlus4M_i(PCPlus4E),
-    .MemWrite_i(MemWrite),
-    .clk(clk),
-    .MemSign_i(MemSign),
-    .MemType_i(MemType),
-    .RdE_i(RdE),
-
-    .ALUResultM_o(ALUResultM),
-    .RD_o(RDM),
-    .PCPlus4M_o(PCPlus4M),
-    .RdM_o(RdM)
+// Memory subsystem: data_mem_top already contains the cache and main memory
+data_mem_top datamem(
+    .write_en_i(MemWrite),
+    .clk_i(clk),
+    .rst_i(rst),
+    .mem_type_i(MemType),
+    .mem_sign_i(MemSign),
+    .write_data_i(WriteData),
+    .addr_i(ALUResult),
+    .read_data_o(RDM)
 );
+
+// Pass-through assignments to preserve original signal names expected by writeback
+assign ALUResultM = ALUResult;
+assign PCPlus4M   = PCPlus4E;
+assign RdM        = RdE;
 
 logic [DATA_WIDTH-1:0] ResultW;
 logic [4:0]           RdW;

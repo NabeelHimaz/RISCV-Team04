@@ -11,7 +11,7 @@ module data_cache #(
     
     output logic [DATA_WIDTH-1:0]   read_data_o,     // Data to CPU
     output logic                    mem_write_en_o,  // Pass-through write enable
-    output logic [DATA_WIDTH-1:0]   mem_write_data_o,// Pass-through write data
+    output logic [DATA_WIDTH-1:0]   mem_write_data_o, // Pass-through write data
     output logic                    hit_o            // For performance monitoring
 );
 
@@ -63,11 +63,11 @@ module data_cache #(
     integer i;
     always_ff @(posedge clk_i) begin
         if (rst_i) begin
-            for (i = 0; i < NUM_SETS; i++) begin
-                valid_array_0[i] <= 1'b0;
-                valid_array_1[i] <= 1'b0;
-                lru_array[i]     <= 1'b0;
-            end
+            for (i = 0; i < NUM_SETS; i = i + 1) begin
+                valid_array_0[i] = 1'b0;   // Use = not <=
+                valid_array_1[i] = 1'b0;   // Use = not <=
+                lru_array[i]     = 1'b0;   // Use = not <=
+end
         end else begin
             
             // Handle Writes (Write-Through)

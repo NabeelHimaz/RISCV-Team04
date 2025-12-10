@@ -33,7 +33,7 @@ module pc_module #(
     
 
     // Program Counter Register
-    always_ff @(posedge clk or posedge rst) begin
+    always_ff @(posedge clk) begin
         if (rst)
             PC <= 32'hBFC00000; // reset address
         else
