@@ -7,6 +7,7 @@
 - [Pipelined CPU Implementation](#pipelined-risc-v-cpu)
 - [Cached Implementation](#data-memory-cache)
 - [Complete RISC-V](#complete-riscv-cpu)
+- [Superscalar](#superscalar)
 - [Appendix](#appendix)
 
 # Quick Start
@@ -480,6 +481,17 @@ All tests pass as expected.
 We also ran the same `pdf` and `f1_fsm` tests on Vbuddy, and observed the similar outputs as in single-cycle.
 
 ---
+# Superscalar
+## Overview
+
+A simplified superscalar RISC-V processor that can execute two independent instructions simultaneously in a single clock cycle, achieving up to 2x throughput compared to a traditional scalar processor.
+## Design Simplifications
+
+- No hazard detection: Since it's non-pipelined, we assume independent instructions
+- No memory operations: Only arithmetic to avoid memory port conflicts
+- No branches
+
+Implementing only I/R type instructions greatly reduced the complexity. It removed the need for a data memory and meant only the ALU had to be duplicated.
 
 # Appendix
 ### A. Design Philosophy & Decisions
