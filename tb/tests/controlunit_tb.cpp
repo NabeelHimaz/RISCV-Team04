@@ -6,7 +6,7 @@ protected:
     void initializeInputs() override
     {
         top->Instr_i = 0;
-        top->Zero_i = 0;
+        
         // Outputs: RegWrite_o, ALUCtrl_o, ALUSrc_o, ImmSrc_o, 
         //          PCSrc_o, MemWrite_o, ResultSrc_o
     }
@@ -54,7 +54,7 @@ TEST_F(ControlUnitTestbench, Branch_ALU_Op)
 TEST_F(ControlUnitTestbench, Branch_ALUSrc)
 {
     top->Instr_i = 0x00000063; // BEQ
-    top->Zero_i = 0;
+    
 
     tick();
 
