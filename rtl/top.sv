@@ -3,7 +3,7 @@ module top #(
 ) (
     input  logic                    clk,
     input  logic                    rst,
-    input  logic                    trigger,
+    output  logic                   trigger,
     output logic [DATA_WIDTH-1:0]   a0
 );
 
@@ -153,5 +153,30 @@ writeback writeback(
     .ResultW_o(ResultW),
     .RdW_o(RdW)
 );
+
+
+
+// Detect infinite loop by monitoring repeating instruction
+logic [DATA_WIDTH-1:0] prev_Instr;
+logic [6:0] repeat_counter;
+
+always_ff @(posedge clk) begin
+    if (rst) begin
+        prev_Instr <= {DATA_WIDTH{1'b0}};
+        repeat_counter <= 7'b0;
+    end else begin
+        // Check if same instruction is repeating (and not a NOP)
+        if (Instr == prev_Instr && Instr != 32'h00000013) begin
+            if (repeat_counter < 7'd100)
+                repeat_counter <= repeat_counter + 7'd1;
+        end else begin
+            repeat_counter <= 7'b0;
+        end
+        prev_Instr <= Instr;
+    end
+end
+
+// Fire trigger when instruction repeats 50+ times
+assign trigger = (repeat_counter >= 7'd50);
 
 endmodule

@@ -7,17 +7,17 @@ module data_cache #(
     input  logic                    write_en_i,
     input  logic [ADDR_WIDTH-1:0]   addr_i,
     input  logic [DATA_WIDTH-1:0]   write_data_i,
-    input  logic [DATA_WIDTH-1:0]   mem_read_data_i, // Data from Main Memory
+    input  logic [DATA_WIDTH-1:0]   mem_read_data_i, //Data from Main Memory
     
-    output logic [DATA_WIDTH-1:0]   read_data_o,     // Data to CPU
-    output logic                    mem_write_en_o,  // Pass-through write enable
-    output logic [DATA_WIDTH-1:0]   mem_write_data_o, // Pass-through write data
-    output logic                    hit_o            // For performance monitoring
+    output logic [DATA_WIDTH-1:0]   read_data_o,     //Data to CPU
+    output logic                    mem_write_en_o,  //Pass-through write enable
+    output logic [DATA_WIDTH-1:0]   mem_write_data_o, //Pass-through write data
+    output logic                    hit_o            //For performance monitoring
 );
 
-    // 512 Sets, 2 Ways.
+    //512 Sets, 2 Ways
     localparam NUM_SETS = 512;
-    localparam TAG_WIDTH = 21; // 32 - 9 (index) - 2 (offset)
+    localparam TAG_WIDTH = 21; 
 
     // Way 0
     logic [DATA_WIDTH-1:0]  data_array_0 [0:NUM_SETS-1];
@@ -32,7 +32,6 @@ module data_cache #(
     // LRU Bit (0 = Replace Way 0, 1 = Replace Way 1)
     logic                   lru_array    [0:NUM_SETS-1];
 
-    // --- Address Parsing ---
     logic [8:0]             set_index;
     logic [TAG_WIDTH-1:0]   tag;
 
@@ -46,20 +45,19 @@ module data_cache #(
     
     assign hit_o = hit0 || hit1;
 
-    // --- Read Logic ---
-    // If Hit: return cache data. If Miss: return Main Memory data (Bypass).
+    //Read Logic 
+    //If Hit: return cache data. If Miss: return Main Memory data (Bypass).
     always_comb begin
         if (hit0)      read_data_o = data_array_0[set_index];
         else if (hit1) read_data_o = data_array_1[set_index];
         else           read_data_o = mem_read_data_i;
     end
 
-    // --- Main Memory Interface (Write-Through) ---
-    // We always write to main memory to keep it consistent.
+    
     assign mem_write_en_o   = write_en_i;
     assign mem_write_data_o = write_data_i;
 
-    // --- Cache Update Logic (Synchronous) ---
+   
     integer i;
     always_ff @(posedge clk_i) begin
         if (rst_i) begin
@@ -74,20 +72,17 @@ end
             if (write_en_i) begin
                 if (hit0) data_array_0[set_index] <= write_data_i;
                 if (hit1) data_array_1[set_index] <= write_data_i;
-                // Note: On a write miss, we do NOT allocate (No-Write-Allocate policy)
-                // This simplifies logic significantly.
+               
             end
 
             // Handle Read Misses (Allocation)
             if (!write_en_i && !hit_o) begin
                 if (lru_array[set_index] == 1'b0) begin
-                    // Replace Way 0
                     valid_array_0[set_index] <= 1'b1;
                     tag_array_0[set_index]   <= tag;
                     data_array_0[set_index]  <= mem_read_data_i;
                     lru_array[set_index]     <= 1'b1; // Next time replace Way 1
                 end else begin
-                    // Replace Way 1
                     valid_array_1[set_index] <= 1'b1;
                     tag_array_1[set_index]   <= tag;
                     data_array_1[set_index]  <= mem_read_data_i;
@@ -95,7 +90,7 @@ end
                 end
             end
             
-            // Update LRU on Hit
+            //Update LRU on Hit
             if (!write_en_i && hit0) lru_array[set_index] <= 1'b1;
             if (!write_en_i && hit1) lru_array[set_index] <= 1'b0;
         end
