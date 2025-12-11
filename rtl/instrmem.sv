@@ -1,19 +1,22 @@
-module instrmem #(    
-    parameter ADDR_WIDTH = 32,
-    parameter DATA_WIDTH = 8
-) (
-    input logic  [ADDR_WIDTH-1:0] addr_i,
-    output logic [ADDR_WIDTH-1:0] read_data_o
+module instrmem #(
+    parameter ADDRESS_WIDTH = 32,
+              DATA_WIDTH = 8,
+              OUT_WIDTH = 32
+)(
+    input logic     [ADDRESS_WIDTH-1:0] addr_i,
+    output logic    [OUT_WIDTH-1:0]     instrA_o,
+    output logic    [OUT_WIDTH-1:0]     instrB_o
 );
 
-logic [DATA_WIDTH-1:0] rom_mem [32'hBFC00FFF : 32'hBFC00000];
+logic [DATA_WIDTH-1:0] rom_array [32'h00000FFF:0]; 
 
 initial begin
-    $readmemh("program.hex", rom_mem); // Load ROM contents from external file yet to be defined
-end
+    $readmemh("program.hex", rom_array); 
+end;
 
-always_comb begin
-    read_data_o = {rom_mem[(addr_i+3)- 32'hBFC00000], rom_mem[(addr_i+2)- 32'hBFC00000], rom_mem[(addr_i+1)- 32'hBFC00000], rom_mem[(addr_i)- 32'hBFC00000]};
-end
+    always_comb begin
+        instrA_o = {rom_array[addr_i+3], rom_array[addr_i+2], rom_array[addr_i+1], rom_array[addr_i+0]}; 
+        instrB_o = {rom_array[addr_i+7], rom_array[addr_i+6], rom_array[addr_i+5], rom_array[addr_i+4]};
+    end
 
 endmodule

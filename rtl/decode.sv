@@ -1,68 +1,70 @@
 module decode #(
     parameter DATA_WIDTH = 32
-) (
-    
-    input logic [2:0] ImmSrc_i,
-    
-    //PC related inputs
-    input logic [DATA_WIDTH-1:0] PC_Plus4_F_i,
-    input logic [DATA_WIDTH-1:0] PC_F_i,
-
-    input logic clk,
-
-    //Register File inputs 
-    input logic [4:0] A1_i,
-    input logic [4:0] A2_i,
-    input logic [4:0] RdF_i,
-    input logic [4:0] RdW_i,
-    input logic [DATA_WIDTH-1:0] instr_i,
-    input logic [DATA_WIDTH-1:0] WD3_i,
-    input logic WE3_i,
-
-    //RF outputs
-    output logic [DATA_WIDTH-1:0] RD1_o,
-    output logic [DATA_WIDTH-1:0] RD2_o,
-
-    //Extend output
-    output logic [DATA_WIDTH-1:0] ImmExtD_o,
-
-    //PC related outputs 
-    output logic [DATA_WIDTH-1:0] PC_Plus4D_o, //this is the next instruction 
-    output logic [DATA_WIDTH-1:0] PCD_o, //this goes to execute where it is added to the Immediate for JMP
-    
-    //test output 
-    output logic [DATA_WIDTH-1:0] a0_o,
-    output logic [4:0] RdD_o //new output we need
-
+)(
+    input  logic                     rst,
+    input  logic                     clk,
+    input  logic   [DATA_WIDTH-1:0]  InstrA_i,
+    input  logic   [DATA_WIDTH-1:0]  InstrB_i,
+    input  logic   [DATA_WIDTH-1:0]  ResultA_i,
+    input  logic   [DATA_WIDTH-1:0]  ResultB_i,
+    output logic                     RegWriteA_o,
+    output logic   [3:0]             ALUCtrlA_o,
+    output logic                     ALUSrcBA_o,
+    output logic   [2:0]             ImmSrcA_o,
+    output logic                     RegWriteB_o,
+    output logic   [3:0]             ALUCtrlB_o,
+    output logic                     ALUSrcBB_o,
+    output logic   [2:0]             ImmSrcB_o,
+    output logic   [DATA_WIDTH-1:0]  RD1A_o,
+    output logic   [DATA_WIDTH-1:0]  RD2A_o,
+    output logic   [DATA_WIDTH-1:0]  RD1B_o,
+    output logic   [DATA_WIDTH-1:0]  RD2B_o,
+    output logic   [DATA_WIDTH-1:0]  ImmExtA_o, 
+    output logic   [DATA_WIDTH-1:0]  ImmExtB_o, 
+    output logic   [DATA_WIDTH-1:0]  a0_o  
 );
-    
 
+    logic [1:0] RegWrite;
 
-    extend extend_u(
-        .instr_i(instr_i),
-        .ImmSrc_i(ImmSrc_i),
-
-        .ImmExt_o(ImmExtD_o)
-       
+    controlunit controlunit(
+        .InstrA_i(InstrA_i),
+        .InstrB_i(InstrB_i),
+        .RegWriteA_o(RegWriteA_o),
+        .ALUCtrlA_o(ALUCtrlA_o),
+        .ALUSrcBA_o(ALUSrcBA_o),
+        .ImmSrcA_o(ImmSrcA_o),
+        .RegWriteB_o(RegWriteB_o),
+        .ALUCtrlB_o(ALUCtrlB_o),
+        .ALUSrcBB_o(ALUSrcBB_o),
+        .ImmSrcB_o(ImmSrcB_o)
     );
-
 
     regfile regfile(
         .clk(clk),
-        .AD1_i(A1_i),
-        .AD2_i(A2_i),
-        .AD3_i(RdW_i),
-
-        .WE3_i(WE3_i),
-        .WD3_i(WD3_i),
-
-        .RD1_o(RD1_o),
-        .RD2_o(RD2_o),
+        .reset(rst),
+        .we_i(RegWrite),
+        .ad1A_i(InstrA_i[19:15]),
+        .ad2A_i(InstrA_i[24:20]),
+        .ad3A_i(InstrA_i[11:7]),
+        .wd3A_i(ResultA_i),
+        .ad1B_i(InstrB_i[19:15]),
+        .ad2B_i(InstrB_i[24:20]),
+        .ad3B_i(InstrB_i[11:7]),
+        .wd3B_i(ResultB_i),
+        .rd1A_o(RD1A_o),
+        .rd2A_o(RD2A_o),
+        .rd1B_o(RD1B_o),
+        .rd2B_o(RD2B_o),
         .a0_o(a0_o)
     );
 
-    assign PCD_o = PC_F_i;
-    assign PC_Plus4D_o = PC_Plus4_F_i;
-    assign RdD_o = RdF_i;
-    
+    extend extend(
+        .InstrA_i(InstrA_i),
+        .InstrB_i(InstrB_i),
+        .ImmSrcA_i(ImmSrcA_o),
+        .ImmSrcB_i(ImmSrcB_o),
+        .ImmExtA_o(ImmExtA_o),
+        .ImmExtB_o(ImmExtB_o)
+    );
+
 endmodule

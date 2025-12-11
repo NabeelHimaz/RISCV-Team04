@@ -1,55 +1,38 @@
 module execute #(
     parameter DATA_WIDTH = 32
 ) (
-    input logic [DATA_WIDTH-1:0]    RD1E_i,
-    input logic [DATA_WIDTH-1:0]    RD2E_i,
-    input logic [DATA_WIDTH-1:0]    PCE_i,
-    input logic [DATA_WIDTH-1:0]    ImmExtE_i,
-    input logic [DATA_WIDTH-1:0]    PCPlus4E_i,
-    input logic [3:0]               ALUCtrl_i,
-    input logic                     ALUSrcB_i,
-    input logic                     ALUSrcA_i,
-    input logic                     JumpCtrl_i,  //This deals with the jump instruction 
-    input logic [4:0]               RdD_i,
-    input logic [2:0]               BranchSrc_i, //controls branching MUX
-
-    output logic [DATA_WIDTH-1:0]   ALUResultE_o,
-    output logic [DATA_WIDTH-1:0]   WriteDataE_o,
-    output logic [DATA_WIDTH-1:0]   PCPlus4E_o,
-    output logic [DATA_WIDTH-1:0]   PCTargetE_o,
-    output logic [4:0]              RdE_o,
-    output logic                    branchTaken_o
+    input  logic [3:0]              ALUCtrlA_i,
+    input  logic [3:0]              ALUCtrlB_i,
+    input  logic                    ALUSrcBA_i,
+    input  logic                    ALUSrcBB_i,
+    input  logic [DATA_WIDTH-1:0]   RD1A_i,
+    input  logic [DATA_WIDTH-1:0]   RD2A_i,
+    input  logic [DATA_WIDTH-1:0]   RD1B_i,
+    input  logic [DATA_WIDTH-1:0]   RD2B_i,
+    input  logic [DATA_WIDTH-1:0]   ImmExtA_i,
+    input  logic [DATA_WIDTH-1:0]   ImmExtB_i,
+    output logic [DATA_WIDTH-1:0]   ALUResultA_o,
+    output logic [DATA_WIDTH-1:0]   ALUResultB_o
 );
 
-logic [DATA_WIDTH-1:0]  srcAE;
-logic [DATA_WIDTH-1:0]  SrcBE;
+    logic [DATA_WIDTH-1:0] SrcBA;
+    logic [DATA_WIDTH-1:0] SrcBB;
 
+    ALU aluA(
+        .ALUCtrl_i(ALUCtrlA_i),
+        .ALUop1_i(RD1A_i),
+        .ALUop2_i(SrcBA),
+        .ALUout_o(ALUResultA_o)
+    );
 
-assign srcAE = (ALUSrcA_i) ? PCE_i : RD1E_i; //mux for choosing 1st input into ALU 
+    ALU aluB(
+        .ALUCtrl_i(ALUCtrlB_i),
+        .ALUop1_i(RD1B_i),
+        .ALUop2_i(SrcBB),
+        .ALUout_o(ALUResultB_o)
+    );
 
-assign SrcBE = (ALUSrcB_i) ? ImmExtE_i : RD2E_i; //MUX for the second input into the ALU
-
-
-
-ALU ALU(
-    .srcA_i(srcAE),
-    .srcB_i(SrcBE),
-    .ALUCtrl_i(ALUCtrl_i),
-    .branch_i(BranchSrc_i),
-
-    .ALUResult_o(ALUResultE_o),
-    .branchTaken_o(branchTaken_o)
-);
-
-//output logic
-logic [DATA_WIDTH-1:0] PCTargetE;
-always_comb begin
-    PCPlus4E_o = PCPlus4E_i;
-    PCTargetE = ImmExtE_i + PCE_i;
-    WriteDataE_o = RD2E_i;
-end
-
-assign PCTargetE_o = (JumpCtrl_i) ? ALUResultE_o : PCTargetE; //mux for jump instruction (switched order when debugging)
-assign RdE_o = RdD_i;
+    assign SrcBA = ALUSrcBA_i ? ImmExtA_i : RD2A_i;
+    assign SrcBB = ALUSrcBB_i ? ImmExtB_i : RD2B_i;
 
 endmodule
