@@ -10,7 +10,7 @@ module fetch #(
 
     logic [DATA_WIDTH-1:0] PCNext;
     logic [DATA_WIDTH-1:0] PC;
-    logic [DATA_WIDTH] P8;
+    logic [DATA_WIDTH-1:0] P8;
 
     assign P8 = PC + 8;
     assign PCNext = PCSrc_i ? PC : P8;
@@ -24,8 +24,8 @@ module fetch #(
 
     instrmem instrmem(
         .addr_i(PC),
-        .InstrA_o(InstrA_o),
-        .InstrB_o(InstrB_o)
+        .instrA_o(InstrA_o), 
+        .instrB_o(InstrB_o)   
     );
 
 endmodule
