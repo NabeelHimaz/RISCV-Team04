@@ -686,7 +686,7 @@ When the same instruction (excluding NOP) executes 50+ times consecutively, we'r
 
 I modified top so that it would output a `cache_hit` signal, I traced this in waveforms to verify that the cache was being hit:
 
-![Cache Testing Results](./images/cache_test.png)
+![Cache Testing Results](../images/cache_test.png)
 
 # What I learned
  
@@ -699,5 +699,6 @@ I modified top so that it would output a `cache_hit` signal, I traced this in wa
 
 
 ---
+
 
 
