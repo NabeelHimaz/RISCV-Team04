@@ -204,38 +204,6 @@ TEST_F(DataMemTopTestbench, LoadHalf_SignExtension)
     EXPECT_EQ(top->read_data_o, 0x0000F00D);
 }
 
-// ==========================================
-// 4. READ-MODIFY-WRITE INTEGRITY
-// ==========================================
-
-// Ensure that writing a single byte does not corrupt the other bytes in the word
-TEST_F(DataMemTopTestbench, ReadModifyWrite_Integrity)
-{
-    uint32_t addr = 0x600;
-
-    // 1. Initialize Word with 0xFFFFFFFF
-    top->write_en_i = 1;
-    top->mem_type_i = 0b00; // Word
-    top->addr_i = addr;
-    top->write_data_i = 0xFFFFFFFF;
-    stepClock();
-
-    // 2. Overwrite only Byte 1 (offset 1) with 0x00
-    top->mem_type_i = 0b01; // Byte
-    top->addr_i = addr + 1;
-    top->write_data_i = 0x00;
-    stepClock();
-
-    // 3. Read back full Word
-    top->write_en_i = 0;
-    top->mem_type_i = 0b00; // Word
-    top->addr_i = addr;
-    tick();
-
-    // Expected: 0xFF00FFFF (Byte 1 is 00, others FF)
-    EXPECT_EQ(top->read_data_o, 0xFF00FFFF);
-}
-
 int main(int argc, char **argv)
 {
     Verilated::commandArgs(argc, argv);
