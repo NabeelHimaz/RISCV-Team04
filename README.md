@@ -559,7 +559,7 @@ The implementation of the complete version remains structurally similar to the p
 ### Test Cases 1-8
 Similar to pipelined, test cases 1-8 assess the full RV32I instruction set for the complete version. We added tests surrounding hazards and the control unit which were heavily affected by the pipelining changes. 
 
-![complete testing](images/complete-tests.png)
+![complete testing](images/complete_tests.png)
 
 All tests pass as expected.
 
