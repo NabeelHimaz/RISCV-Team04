@@ -97,7 +97,7 @@ cd tb
 
 | Team Member | GitHub | CID | Email | Personal Statement |
 |-------------|--------|-----|-------|-------------------|
-| [Team Member 1] | [@Asad-Tar1q | [02582153] | [aut24@ic.ac.uk] | [Link to Statement](./statements/Asad.md) |
+| [Team Member 1] | [@Asad-Tar1q](https://github.com/Asad-Tar1q)| [02582153] | [aut24@ic.ac.uk] | [Link to Statement](./statements/Asad.md) |
 | [Team Member 2] | [@Marc0s-ikp](https://github.com/Marc0s-ikp) | [02415338] | [mi624@ic.ac.uk] | [Link to Statement](./statements/Marcus.md) |
 | [Team Member 3] | [@NabeelHimaz](https://github.com/NabeelHimaz) | [02605511] | [nh1324@ic.ac.uk] | [Link to Statement](./statements/Nabeel.md) |
 | [Team Member 4] | [@archit-ku](https://github.com/archit-ku) | [02560961] | [archit.kumar24@imperial.ac.uk] | [Link to Statement](./statements/Archit.md) |
