@@ -50,7 +50,8 @@ module branch_predictor #(
                 btb_valid[i] <= 1'b0;
                 bht[i]       <= 2'b01; // Weakly Not Taken
             end
-        end else if (BranchE) begin
+        end 
+        else if (BranchE) begin
             //Update Tag and Target
             btb_valid[indexE] <= 1'b1;
             btb_tag[indexE]   <= PCE;

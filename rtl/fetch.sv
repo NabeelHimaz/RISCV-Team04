@@ -31,17 +31,20 @@ module fetch #(
     assign PC_Plus4_F = PC_Plus4;
     assign PC_F = PC;
 
-    // Branch Predictor Instance
+
+
+        
     branch_predictor bp (
         .clk(clk), .rst(rst),
         .PCF(PC),
-        .PredictedTargetF(PredictedTargetF),
         .PredictTakenF(PredictTakenF),
+        .PredictedTargetF(PredictedTargetF),
+        
         // Update ports
         .PCE(PCE_i),
         .PCTargetE(PCTargetE_i),
-        .BranchTakenE(BranchTakenE_i),
-        .BranchE(BranchE_i)
+        .BranchE(BranchE_i),
+        .BranchTakenE(BranchTakenE_i)
     );
 
     assign PredictTakenF_o = PredictTakenF;
