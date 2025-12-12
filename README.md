@@ -112,7 +112,6 @@ The single-cycle implementation forms the foundation of our RISC-V processor, ex
 
 ![Single-Cycle Architecture Diagram](./images/singlecycleschematic.jpg)
 
-*[Insert single-cycle architecture diagram here]*
 
 ### Supported Instructions
 
@@ -304,15 +303,16 @@ These techniques ensure efficient data access, reducing latency and leveraging l
 ![](/images/cache-schematic.png)
 ## Contributions
 
-| Module                       | Clarke | Joel | Kevin | Partha |
-| ---------------------------- | ------ | ---- | ----- | ------ |
-| memory_top.sv                |        | `X`  |       |        |
-| ram2port.sv                  |        | `X`  |       | `*`    |
-| sram.sv                      |        | `X`  |       |        |
-| cache controller             |        | `X`  |       | `X`    |
-| System Testing and Debugging |        | `X`  |       | `X`    |
+| Module / Task                | Asad | Marcus |
+|------------------------------|------|--------|
+| data_cache.sv                |      |   X    |
+| memoryblock.sv               |   X  |        |
+| Single-cycle cache           |   X  |   C    |
+| Pipelined cache              |      |   X    |
+| System Testing & Debugging   |   C  |   X    |
+   
 
-`X` - Lead Contributor   `*` - Partial Contributor
+`X` - Lead Contributor   `C` - Contributor
 ## File Structure
 ```
 .
