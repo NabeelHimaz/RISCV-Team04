@@ -207,9 +207,7 @@ For the tests provided (`1_addi_bne` `2_li_add` `3_lbu_sb` `4_jal_ret` `5_pdf`):
 ![Single cycle testing](/images/single-cycle-tests.png)
 
 ### F1
-![Video for F1 lights](images/vbuddy_tests/F1.gif)
-
-[Link to Video](images/vbuddy_tests/F1_FSM.mp4)
+![Video for F1 lights](https://github.com/NabeelHimaz/RISCV/blob/main/images/vbuddy_tests/f1.mp4)
 
 ### PDF: Gaussian
 ![Video for PDF: Gaussian Test](images/vbuddy_tests/PDF-Gaussian.gif)

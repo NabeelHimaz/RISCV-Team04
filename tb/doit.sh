@@ -9,6 +9,7 @@ SCRIPT_DIR=$(dirname "$(realpath "$0")")
 TEST_FOLDER=$(realpath "$SCRIPT_DIR/tests")
 UNIT_TEST_FOLDER=$(realpath "$SCRIPT_DIR/unit_tests")
 PROG_TEST_FOLDER=$(realpath "$SCRIPT_DIR/program_tests")
+VBUDDY_TEST_FOLDER=$(realpath "$SCRIPT_DIR/vbuddy_tests")
 RTL_FOLDER=$(realpath "$SCRIPT_DIR/../rtl")
 GREEN=$(tput setaf 2)
 RED=$(tput setaf 1)
@@ -26,13 +27,13 @@ if [[ $# -eq 0 ]]; then
     echo "Which tests would you like to run?"
     echo "1) Unit Tests"
     echo "2) Program Tests"
-    echo "3) All Tests"
+    echo "3) VBuddy Tests"
     read -p "Select option (1-3): " option
 
     case $option in
         1) files=(${UNIT_TEST_FOLDER}/*.cpp) ;;
         2) files=(${PROG_TEST_FOLDER}/*.cpp) ;;
-        3) files=(${UNIT_TEST_FOLDER}/*.cpp ${PROG_TEST_FOLDER}/*.cpp) ;;
+        3) files=(${VBUDDY_TEST_FOLDER}/*.cpp) ;;
         *) echo "Invalid option"; exit 1 ;;
     esac
 else
@@ -83,9 +84,10 @@ for file in "${files[@]}"; do
                 -Wno-UNUSED \
                 -CFLAGS "-std=c++17" \
                 -LDFLAGS "-L${GTEST_LIB} -lgtest -lgtest_main -lpthread"
+                > /dev/null
 
     # Build C++ project with automatically generated Makefile
-    make -j -C obj_dir/ -f Vdut.mk
+    make -j -C obj_dir/ -f Vdut.mk > /dev/null
     
     # Run executable simulation file
     ./obj_dir/Vdut
@@ -105,6 +107,6 @@ if [ $fails -eq 0 ]; then
     exit 0
 else
     total=$((passes + fails))
-    echo "${RED}Failure! Only ${passes} tests passed out of ${total}. Check vbuddy is connected if running program tests.${RESET}"
+    echo "${RED}Failure! Only ${passes} tests passed out of ${total}. Check vbuddy is connected if running vbuddy tests.${RESET}"
     exit 1
 fi
