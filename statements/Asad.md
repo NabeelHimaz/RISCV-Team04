@@ -283,7 +283,7 @@ The fetch stage is the entry point of the pipeline, responsible for supplying a 
 5. **Fetch/Decode Pipeline Register** - isolates fetch stage from decode stage
 
 
-![Fetch Stage](./images/fetch_stage.png)
+![Fetch Stage](../images/Fetch_Stage.png)
 
 **Data Flow:**
 ```
@@ -694,5 +694,6 @@ This shows that cache is being hit meaning that theoretically it could be used i
 
 
 ---
+
 
 
