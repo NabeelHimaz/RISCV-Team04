@@ -186,14 +186,6 @@ always_comb begin
     endcase
 end
 ```
-
-### Challenges and Solutions
-
-**Challenge 1: Implicit Zero Bits**
-- **Problem**: B-type and J-type instructions have implicit LSB of 0 (word-aligned addressing)
-- **Solution**: Explicitly concatenated `1'b0` at the end of these immediate values
-- **Rationale**: Hardware must match ISA specification for correct address calculation
-
 ---
 
 ## Program Counter Module
@@ -665,7 +657,7 @@ Testing the cache was challenging because cache behavior in singlecycle had no i
 
 **1. Infinite Loop Detection**
 
-The reference programs (Gaussian, Sine) run indefinitely, repeatedly generating output values. To automatically terminate simulation after sufficient data collection, I implemented a loop detector:
+The reference programs (Gaussian, Sine) run indefinitely, repeatedly generating output values. To automatically terminate simulation so I could see when they finished, I changed trigger to an output:
 ```systemverilog
 always_ff @(posedge clk) begin
     if (Instr == prev_Instr && Instr != 32'h00000013) begin
@@ -680,7 +672,7 @@ end
 assign trigger = (repeat_counter >= 7'd50);
 ```
 
-When the same instruction (excluding NOP) executes 50+ times consecutively, we're likely in a stable loop. The `trigger` signal fires, which the testbench uses to  exit simulation where I could then see the number of clock cycles. 
+When the same instruction (excluding NOP) executes 50+ times consecutively, we're likely in a stable loop. The `trigger` signal fires, which the testbench uses to  exit simulation where I could then see the number of clock cycles. However, I realised that the number of clock cycles would not make a difference so I had to find a different way of proving the cache was being used.
 
 **2. Waveform Analysis**
 
@@ -688,10 +680,13 @@ I modified top so that it would output a `cache_hit` signal, I traced this in wa
 
 ![Cache Testing Results](../images/cache_test.png)
 
+This shows that cache is being hit meaning that theoretically it could be used in larger programs to speed up the CPU.   
+
 # What I learned
  
+- **Spend more time planning**: While we made an initial schematic on paper to help us with how the components interacted, we didn't plan as much for subsequent stages which lead to some difficulties later on when we had to create new ports in certain modules. Stronger initial planning would have helped. 
 
-- **Pipeline hazards are subtle**: Data dependencies aren't obvious until you trace instruction flows cycle-by-cycle. Learning to detect forwarding opportunities vs. mandatory stalls taught me to think about timing and data availability, not just functionality.
+- **Abstraction is very useful**: Creating clean interfaces between modules (like data_mem_top encapsulating cache and main memory, or hazard unit operating independently) meant we could modify internal implementations without breaking the entire processor. When we integrated the cache, the CPU stages didn't need to change at all because we hid the complexity behind a simple memory interface. 
 
 - **Waveform debugging is essential**: GTKWave is useful to find bugs. Tracking signals through pipeline stages revealed bugs that would never show up in final outputs like PC+4 not propagating.
 
@@ -699,6 +694,5 @@ I modified top so that it would output a `cache_hit` signal, I traced this in wa
 
 
 ---
-
 
 
