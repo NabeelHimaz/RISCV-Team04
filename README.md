@@ -22,8 +22,8 @@ We completed the Single-Cycle and all of the stretch goals (Pipelined, Two-Way S
 |`Pipelined` | Pipelined + Full RV32I Implementation |
 |`Cache` | Cache + Full 32VI Single-Cycle Implementation |
 |`Complete` | Pipelined + Cache + Full RV32I Implementation |
-|`Superscalar` | Superscalar Implementation |
-|`Branch-Predict` | Pipelined + Full RV32I + Branch Prediction Implementation |
+|`Superscalar` | Simple Superscalar Implementation |
+|`Branch-Predict` | Pipelined + Full RV32I + Not Fully tested Branch Prediction Implementation |
 
 
 ### Prerequisites
@@ -449,16 +449,6 @@ The two-way set-associative cache design consists of the following components:
     - **Capacity**: 512 sets × 2 ways × 4 bytes = 4 KB of fast-access storage.
 
 This implementation reduces average memory access time while maintaining simplified coherency through the Write-Through policy, avoiding the complexity of Dirty bits and Write-Back buffers.
-
-## Testing
-
-  For unit testing, we initially setup the environment to provide clear debug information and supports waveform analysis for issue tracking with gtkwave and also outputting variable status in between. We were then able to analyse the following through test cases:
-- Basic read and write operations perform correctly in isolation.
-- Proper handling of read and write hits for word and byte addressing.
-- Eviction Logic
-- Write Miss Handling
-- LRU Replacement policy and fetching from memory
-
 
 ---
 # Complete RISCV CPU
