@@ -569,7 +569,7 @@ Pipeline registers maintain signal integrity while allowing each stage to operat
 
 ## Superscalar Implementation
 
-![Schematic](../images/superscalarschematic.jpg)
+![Schematic](../images/superscalarschematic.png)
 
 Due to time constraints, the superscalar implementation focuses on a subset of the RISC-V instruction set, specifically R-type and I-type ALU instructions. This decision allowed for a cleaner implementation while demonstrating the core principles of dual-issue execution.
 
