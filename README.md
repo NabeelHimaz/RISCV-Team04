@@ -207,20 +207,17 @@ For the tests provided (`1_addi_bne` `2_li_add` `3_lbu_sb` `4_jal_ret` `5_pdf`):
 ![Single cycle testing](/images/single-cycle-tests.png)
 
 ### F1
-<video src="https://github.com/NabeelHimaz/RISCV/raw/main/images/vbuddy_tests/f1.mp4" controls="controls" style="max-width: 730px;">
-</video>
+https://github.com/NabeelHimaz/RISCV/raw/main/images/vbuddy_tests/f1.mp4
 
 ### PDF: Gaussian
-<video src="https://github.com/NabeelHimaz/RISCV/raw/main/images/vbuddy_tests/gaussian.mp4" controls="controls" style="max-width: 730px;">
-</video>
+https://github.com/NabeelHimaz/RISCV/raw/main/images/vbuddy_tests/gaussian.mp4
 
 ### PDF: Noisy
-<video src="https://github.com/NabeelHimaz/RISCV/raw/main/images/vbuddy_tests/noisy.mp4" controls="controls" style="max-width: 730px;">
-</video>
+https://github.com/NabeelHimaz/RISCV/raw/main/images/vbuddy_tests/noisy.mp4
 
 ### PDF: Triangle
-<video src="https://github.com/NabeelHimaz/RISCV/raw/main/images/vbuddy_tests/triangle.mp4" controls="controls" style="max-width: 730px;">
-</video>
+https://github.com/NabeelHimaz/RISCV/raw/main/images/vbuddy_tests/triangle.mp4
+
 ---
 # Pipelined RISC-V CPU
 
